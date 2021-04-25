@@ -9,7 +9,6 @@ export default function Home() {
 
     useEffect(() => {
       const interval = setInterval(() => {
-        console.log({cycle});
         setCycle(cycle + 1);
       }, 10000);
       return () => clearInterval(interval);
