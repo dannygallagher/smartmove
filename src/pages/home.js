@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../Styles/Home.css';
 import logo from '../Styles/SimpleHouseLogo.png';
 /*import 'bootstrap/dist/css/bootstrap.min.css';*/
 
 export default function Home() {
 
+    const [cycle, setCycle] = useState(0);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        console.log({cycle});
+        setCycle(cycle + 1);
+      }, 10000);
+      return () => clearInterval(interval);
+    });
+
     return (
         <>
-        <header className="showcase">
+        <header className={`showcase${cycle % 3}`}>
             <div className="content">
                 <img src={logo} className="logo" alt="SmartMove"/>
                     <div className="title">

@@ -1,5 +1,5 @@
 
-.showcase::after {
+.showcase0::after {
     content: '';
     height: 100vh;
     width: 100%;
@@ -13,6 +13,33 @@
     transition: all 1000ms;
 }
 
+.showcase1::after {
+    content: '';
+    height: 100vh;
+    width: 100%;
+    background-image: url(suburbs.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: block;
+    filter: blur(3px);
+    -webkit-filter: blur(3px);
+    transition: all 1000ms;
+}
+
+.showcase2::after {
+    content: '';
+    height: 100vh;
+    width: 100%;
+    background-image: url(suburb_sun.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: block;
+    filter: blur(3px);
+    -webkit-filter: blur(3px);
+    transition: all 1000ms;
+}
 
 .content {
     position: absolute;
