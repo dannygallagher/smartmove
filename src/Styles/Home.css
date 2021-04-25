@@ -1,0 +1,50 @@
+
+.showcase::after {
+    content: '';
+    height: 100vh;
+    width: 100%;
+    background-image: url(city_warm.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: block;
+    filter: blur(3px);
+    -webkit-filter: blur(3px);
+    transition: all 1000ms;
+}
+
+
+.content {
+    position: absolute;
+    /* Set z index to make content go over bg image */
+    z-index: 1;
+    top: 10%;
+    left: 50%;
+    margin-top: 105px;
+    margin-left: -145px;
+    width: 300px;
+    height: 350px;
+    text-align: center;
+    color: #fff;
+    transition: all 1000ms;
+}
+.content .logo {
+    height: 10rem;
+    width: 10rem;
+}
+
+.content .title {
+    font-size: 4.2rem;
+    font-family: "Candara";
+    text-shadow: 4px 4px 10px #000000;
+    margin-top: 1rem;
+}
+
+.content .text {
+    line-height: 1;
+    font-size: 1.5rem;
+    font-family: "Candara";
+    font-style: italic;
+    text-shadow: 4px 4px 10px #000000;
+    margin-top: .5rem;
+}
