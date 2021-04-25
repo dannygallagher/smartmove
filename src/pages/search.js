@@ -5,7 +5,7 @@ import { StaticMap, ReactMapGL, Marker } from 'react-map-gl';
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1Ijoiaml3b25pZTExIiwiYSI6ImNrbnV2eWg0bDBlZnUyd3BqcXN4cGRwMTIifQ.mM4cn9MeLMvpAgOeZsfovA';
 
-export default function Recommendations() {
+export default function Search() {
     
     // Map view initial state
     const initialViewState = {

@@ -1,7 +1,7 @@
 import { useState, React } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import Home from './pages/home';
-import Recommendations from './pages/recommendations';
+import Search from './pages/search';
 import Details from './pages/details';
 import { Tabs, Tab, AppBar } from "@material-ui/core";
 
@@ -12,13 +12,13 @@ const RouteWrapper = props => {
   
   const tabNameToIndex = {
     0: "home",
-    1: "recommendations",
+    1: "search",
     2: "details"
   }
 
   const indexToTabName = {
     home: 0,
-    recommendations: 1,
+    search: 1,
     details: 2
   }
 
@@ -34,12 +34,12 @@ const RouteWrapper = props => {
           <AppBar position="static">
               <Tabs value={selectedTab} onChange={handleTabSelect}>
                   <Tab label="Home" />
-                  <Tab label="Recommendations" />
+                  <Tab label="Search" />
                   <Tab label="Details" />
               </Tabs>
           </AppBar>
           {selectedTab === 0 && <Home />}
-          {selectedTab === 1 && <Recommendations />}
+          {selectedTab === 1 && <Search />}
           {selectedTab === 2 && <Details />}
       </>
   )
