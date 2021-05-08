@@ -1,0 +1,10 @@
+.results {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+}
+
+.name .city .state .zip .latitude .longitude {
+    flex: 1 0 50%;
+}
