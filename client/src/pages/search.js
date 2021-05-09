@@ -20,20 +20,18 @@ export default function Search() {
 
     // Hook for managing map view state
     const [viewState, setViewState] = useState(initialViewState);
-
-    const [radiusState, setRadiusState] = useState();
-
-    const [longState, setLongState] = useState();
-
-    const [latState, setLatState] = useState();
-
-    const [budgetState, setBudgetState] = useState();
+    
+    const [radius, setRadius] = useState();
+    const [longitude, setLongitude] = useState();
+    const [latitude, setLatitude] = useState();
+    const [minBudget, setMinBudget] = useState();
+    const [maxBudget, setMaxBudget] = useState();
 
     const mapClickHandler = (info) => {
         console.log("Longitude: " + info.coordinate[0]);
         console.log("Latitude: " + info.coordinate[1]);
-        setLongState(info.coordinate[0]);
-        setLatState(info.coordinate[1]);
+        setLongitude(info.coordinate[0]);
+        setLatitude(info.coordinate[1]);
 
 
     }
@@ -100,6 +98,38 @@ export default function Search() {
     )
 */
 
+
+    const [searchResults, setSearchResults] = useState([]);
+    const searchQuery = () => {
+
+        // setRadius(10);
+        // setLongitude(90)
+        // setLatitude(-99);
+        // const [minBudget, setMinBudget] = useState();
+        // const [maxBudget, setMaxBudget] = useState();
+
+
+        // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
+        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}`, 
+        {
+            method: 'GET', // The type of HTTP request
+        }).then(res => {
+            //console.log(res.json());
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(resultsList => {
+            const resultsDivs = resultsList.map((result, i) => 
+                <div className="results" id="test-results">
+                    <div className="name">{result.zip}</div>
+                    <div className="city">{result.city}</div>
+                    <div className="state">{result.state}</div>
+                </div>
+            )
+            setSearchResults(resultsDivs);
+        });
+    }
+
     const useStyles = makeStyles((theme) => ({
         gridGeneral: {
             width: '100%',
@@ -133,6 +163,7 @@ export default function Search() {
 
     return (
         <div>
+            <button onClick={searchQuery}>Search</button>
             <Grid container spacing={4} className={classes.gridGeneral}>
                 <Grid item xs={12} md={4} className={classes.gridTop}>
                     <Grid item xs={12}>
@@ -143,8 +174,8 @@ export default function Search() {
                             id="radius"
                             required
                             label="Radius"
-                            value={radiusState}
-                            onChange={e => setRadiusState(e.target.value)}
+                            value={radius}
+                            onChange={e => setRadius(e.target.value)}
                             margin="dense"
                             />
 
@@ -154,8 +185,8 @@ export default function Search() {
                             id="latitude"
                             required
                             label="Latitude"
-                            value={latState || ''}
-                            onChange={e => setLatState(e.target.value)}
+                            value={latitude || ''}
+                            onChange={e => setLatitude(e.target.value)}
                             margin="dense"
                             />
 
@@ -165,21 +196,28 @@ export default function Search() {
                             id="longitude"
                             required
                             label="Longitude"
-                            value={longState || ''}
-                            onChange={e => setLongState(e.target.value)}
+                            value={longitude || ''}
+                            onChange={e => setLongitude(e.target.value)}
                             margin="dense"
                             /> 
 
                             <div></div>
                             
                             <TextField
-                            id="budget"
-                            label="Budget"
-                            value={budgetState}
-                            onChange={e => setBudgetState(e.target.value)}
+                            id="min-budget"
+                            label="min-budget"
+                            value={minBudget}
+                            onChange={e => setMinBudget(e.target.value)}
                             margin="dense"
                             />
 
+                            <TextField
+                            id="max-budget"
+                            label="max-budget"
+                            value={maxBudget}
+                            onChange={e => setMaxBudget(e.target.value)}
+                            margin="dense"
+                            />
                             <div>Attribute</div>
                             <div>City</div>
                             <div>State</div>
@@ -223,7 +261,9 @@ export default function Search() {
                         </DeckGL>
                 </Grid>
                 <Grid item xs={12} md={12}>
-                    <Paper className={classes.paper}></Paper>
+                    <Paper className={classes.paper}>
+                        {searchResults}
+                    </Paper>
                 </Grid>
             </Grid>
         </div>

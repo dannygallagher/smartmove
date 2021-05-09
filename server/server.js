@@ -132,26 +132,87 @@ app.post('/temptabledrop', (req, res) => {
 });
 
 
+// GENERAL SEARCH
+const search = (req, res) => {
+   
+    let latitude = req.params.latitude ;
+    let longitude = req.params.longitude ;
+    let radius = req.params.radius ;
+    let minBudget = req.params.minBudget ;
+    let maxBudget = req.params.maxBudget;
 
-// TEST QUERY  
-const testQuery = (req, res) => {
-    var query = `
-        SELECT *
-        FROM att_rats
-    `;
+    // // Defines attribute table name
+    // let attribute = ';
+
+    // // Says if we are looking for businesses or zipcodes
+    // let result_type = ;
+
+    let query = `
+        WITH coordinates AS
+            (SELECT zip,
+            69 * DEGREES(acos( 
+            cos( radians(latitude) ) *
+            cos( radians(${latitude}) ) * 
+            cos( radians(${longitude}) - radians(longitude ) ) +
+            sin( radians( latitude ) ) * 
+            sin( radians(${latitude}) ) ) )  as distance
+            FROM zipcode)
+        SELECT z.zip, z.city, z.state, z.county, COUNT(business_id) AS Num_Businesses_Listed` 
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : `, 2021_02 AS Median_Home_Value`)
+        + `
+        FROM zipcode z
+        JOIN coordinates c ON c.zip = z.zip 
+        LEFT OUTER JOIN GoodForKids a ON z.zip= a.zipcode
+        `
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` JOIN home_values h ON z.zip = h.zip`)
+        +
+        `    
+        JOIN business b ON z.zip=b.postal_code
+        WHERE c.distance <= 100`
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` AND 2021_02 BETWEEN 50000 AND 1000000`)
+        + ` AND percentile >= .7
+        GROUP BY z.zip
+        ORDER BY a.percentile DESC
+        LIMIT 20;
+    `
 
     connection.query(query, function(err, rows, fields) {
         if (err) {
             console.log(err);
         } else {
-            //console.log(rows);
+            console.log('Success!');
+            console.log(rows);
             res.json(rows);
         }
     })
 }
 
-//app.post('/temptable', tempTable);
-app.get('/sample', testQuery);
+app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget', search);
+
+
+
+
+
+
+// // TEST QUERY  
+// const testQuery = (req, res) => {
+//     var query = `
+//         SELECT *
+//         FROM att_rats
+//     `;
+
+//     connection.query(query, function(err, rows, fields) {
+//         if (err) {
+//             console.log(err);
+//         } else {
+//             //console.log(rows);
+//             res.json(rows);
+//         }
+//     })
+// }
+
+
+//app.get('/sample', testQuery);
 
 
 app.listen(4000, () => {
