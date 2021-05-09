@@ -1,0 +1,15 @@
+.restaurants-header, .results-container .restaurant {
+    padding-left: 10%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+}
+
+.restaurants-header .header-lg, .restaurant .name {
+flex: 1 0 50%;
+}
+
+.restaurants-header .header, .restaurant .rating {
+flex: 1 0 25%;
+}
