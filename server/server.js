@@ -134,9 +134,7 @@ app.post('/temptabledrop', (req, res) => {
 
 // GENERAL SEARCH
 const search = (req, res) => {
-
-    console.log("Reached here");    
-
+   
     let latitude = req.params.latitude ;
     let longitude = req.params.longitude ;
     let radius = req.params.radius ;
@@ -159,13 +157,20 @@ const search = (req, res) => {
             sin( radians( latitude ) ) * 
             sin( radians(${latitude}) ) ) )  as distance
             FROM zipcode)
-        SELECT z.zip, z.city, z.state, z.county, COUNT(business_id) AS Num_Businesses_Listed, 2021_02 AS Median_Home_Value
+        SELECT z.zip, z.city, z.state, z.county, COUNT(business_id) AS Num_Businesses_Listed` 
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : `, 2021_02 AS Median_Home_Value`)
+        + `
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN GoodForKids a ON z.zip= a.zipcode
-        JOIN home_values h ON z.zip = h.zip 
+        `
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` JOIN home_values h ON z.zip = h.zip`)
+        +
+        `    
         JOIN business b ON z.zip=b.postal_code
-        WHERE c.distance <= 100 AND 2021_02 BETWEEN 50000 AND 1000000 AND percentile >= .7
+        WHERE c.distance <= 100`
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` AND 2021_02 BETWEEN 50000 AND 1000000`)
+        + ` AND percentile >= .7
         GROUP BY z.zip
         ORDER BY a.percentile DESC
         LIMIT 20;
