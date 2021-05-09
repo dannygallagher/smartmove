@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import '../Styles/details.css';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
+import Image from '../Styles/city_warm.jpg';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
 
 export default function Details() {
@@ -11,6 +12,7 @@ export default function Details() {
             root: {
                 flexGrow: 1,
                 padding: theme.spacing(2),
+                backgroundImage: `url(${Image})`
             },
             paper: {
                 padding: theme.spacing(2),
@@ -290,7 +292,7 @@ export default function Details() {
                 </div>
               </Paper>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={5}>
               <Paper className={classes.paper}> 
                 <div className={classes.chart}>
                     <Bar data={barData} options={barOptions.options} />
@@ -317,15 +319,7 @@ export default function Details() {
                 </div>
               </Paper>
             </Grid>
-            {/* <Grid item xs={4}>
-              <Paper className={classes.paper}>
-                <div className={classes.chart}>
-                    <Line data={lineData} />
-                </div>
-              </Paper>
-            </Grid> */}
-            
           </Grid>
         </div>
-      );
+    );
 }
