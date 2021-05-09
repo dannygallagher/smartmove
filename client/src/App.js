@@ -1,4 +1,4 @@
-import { useState, React } from 'react';
+import { useState, useEffect, React } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import Home from './pages/home';
 import Search from './pages/search';
@@ -48,6 +48,39 @@ const RouteWrapper = props => {
 function App() {
 
   document.title = "Smart Move";
+
+  const createTempTable = () => {
+    fetch("http://localhost:4000/temptablecreate", 
+        {
+            method: 'POST', // The type of HTTP request
+        }).then(res => {
+            console.log(res);
+        })
+  }
+
+  const dropTempTable = () => {
+      fetch("http://localhost:4000/temptabledrop", 
+          {
+              method: 'POST', // The type of HTTP request
+          }).then(res => {
+              console.log(res);
+          })
+  }
+
+  // Create temporary tables in the database when the app first loads, and then drop the tables
+  // when the user exits the app (closes the window)
+  useEffect(() => {
+      createTempTable(); 
+
+      const cleanup = () => {
+        dropTempTable();
+      }
+      window.addEventListener('beforeunload', cleanup)
+
+      return () => {
+          window.removeEventListener('beforeunload', cleanup)  
+      }
+  }, []);
 
   return (
     <div>

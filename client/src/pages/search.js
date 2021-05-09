@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DeckGL from '@deck.gl/react';
 import { LineLayer, TextLayer, PathLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { StaticMap, ReactMapGL, Marker } from 'react-map-gl';

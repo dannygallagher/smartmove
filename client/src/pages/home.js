@@ -7,12 +7,12 @@ export default function Home() {
 
     const [cycle, setCycle] = useState(0);
 
+    // Rotate the home page picture every 10 seconds
     useEffect(() => {
-      const interval = setInterval(() => {
-        console.log({cycle});
-        setCycle(cycle + 1);
-      }, 10000);
-      return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            setCycle(cycle + 1);
+        }, 10000);
+        return () => clearInterval(interval);
     });
 
     return (
