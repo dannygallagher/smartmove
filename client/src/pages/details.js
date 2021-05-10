@@ -299,7 +299,7 @@ export default function Details() {
               labels: Object.keys(row),
               datasets: [
                   {   
-                      label: 'Average Home Value in US Dollars',
+                      label: 'Average Home Value in US Dollars in Last 6 Months',
                       data: [
                         row.September, 
                         row.October,
@@ -336,7 +336,7 @@ export default function Details() {
             labels: Object.keys(row),
               datasets: [
                   {   
-                      label: 'Average Rent Price in US Dollars',
+                      label: 'Average Rent Price in US Dollars in Last 6 Months',
                       data: [
                         row.September, 
                         row.October,
@@ -360,14 +360,12 @@ export default function Details() {
 
     return (
         <div className={classes.root}>
-          <Grid container spacing={1}>  
-            <Grid item xs>
-              <Paper className={classes.paper}>Zipcode: {zip}</Paper>
-            </Grid>
-          </Grid>
+          <div className="details-header">
+            <div className="title"><strong>Zipcode: {zip}</strong></div>
+          </div>
           <Grid container spacing={3}>
             <Grid item xs={3}>
-              <Grid container spacing={1}>
+              <Grid container direction="column" spacing={2}>
                 <Grid item xs>
                   <Paper className={classes.paper}>
                     <div className={classes.chart}>
@@ -375,8 +373,6 @@ export default function Details() {
                     </div>
                   </Paper>
                 </Grid>
-              </Grid> 
-              <Grid container spacing={1}>
                 <Grid item xs>
                   <Paper className={classes.paper}>
                     <div className={classes.pieChart}>
@@ -387,7 +383,7 @@ export default function Details() {
               </Grid> 
             </Grid>
             <Grid item xs={5}>
-              <Grid container spacing={1}>
+              <Grid container direction="column" spacing={3}>
                 <Grid item xs>
                   <Paper className={classes.paper}> 
                     <div className={classes.chart}>
@@ -395,8 +391,6 @@ export default function Details() {
                     </div>
                   </Paper>
                 </Grid>
-              </Grid> 
-              <Grid container spacing={1}>
                 <Grid item xs>
                   <Paper className={classes.paper}>
                     <div className={classes.chart}>
@@ -404,8 +398,6 @@ export default function Details() {
                     </div>
                   </Paper>                  
                 </Grid>
-              </Grid> 
-              <Grid container spacing={1}>
                 <Grid item xs>
                   <Paper className={classes.paper}> 
                     <div className={classes.chart}>
@@ -427,15 +419,6 @@ export default function Details() {
               </Paper>
             </Grid>
           </Grid>
-          {/* <Grid container spacing={1}>
-            <Grid item xs>
-              <Paper className={classes.paper}> 
-                <div className={classes.chart}>
-                    <Bar data={barData} options={barOptions.options} />
-                </div>
-              </Paper>
-            </Grid>
-          </Grid> */}
         </div>
     );
 }

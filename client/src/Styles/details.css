@@ -13,3 +13,12 @@ flex: 1 0 50%;
 .restaurants-header .header, .restaurant .rating {
 flex: 1 0 25%;
 }
+
+.details-header .title {
+    align-items: center;
+    padding-left: 38%;
+    padding-bottom: 10pt;
+    color: beige;
+    font-size: 40px;
+    
+}
