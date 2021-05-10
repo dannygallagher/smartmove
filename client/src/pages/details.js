@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import Image from '../Styles/city_warm.jpg';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
 
-export default function Details() {
+export default function Details({zip}) {
     
     const useStyles = makeStyles((theme) => ({
             root: {
@@ -45,10 +45,6 @@ export default function Details() {
       fetchHomeValues();
       fetchRentPrices();
     }, []);
-
-    // CREATE HOOK FOR ZIPCODE
-    const [zip, setZip] = useState(85032);
-
 
     /* ---------  CREATE HOOKS FOR ALL CHARTS  -----------*/
 
