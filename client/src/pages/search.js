@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Paper, Divider, TextField, Checkbox, Select, MenuItem, FormControl, InputLabel } from '@material-ui/core';
-import Map from "../components/Map";
-import {SearchResultsHeader, SearchResultsRow} from "../components/SearchResults";
+import Map from "../components/map";
+import {SearchResultsHeader, SearchResultsRow} from "../components/searchresults";
 import Details from "./details";
 
 export default function Search() {
