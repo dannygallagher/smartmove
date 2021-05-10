@@ -35,71 +35,153 @@ const connection = mysql.createPool(configMult)
 // Temporary table query
 app.post('/temptablecreate', (req, res) => {
     var query = `
-        CREATE TABLE GoodForKids
+CREATE TABLE GoodForKids
 WITH att_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS att
-    FROM business
-    WHERE attributesGoodForKids = 'True'
-    GROUP BY postal_code),
-total_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS total
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesGoodForKids = 'True' THEN COUNT(if( attributesGoodForKids = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
     FROM business
 	WHERE attributesGoodForKids IN ('Unlisted', 'True', 'False')
     GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
 att_ratio AS(
-	SELECT a.zipcode, a.att, t.total, a.att/t.total AS att_rat, ROUND(PERCENT_RANK() OVER (ORDER BY a.att/t.total), 2) AS percentile
-	FROM att_count a JOIN total_count t ON a.zipcode = t.zipcode)
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
 SELECT *
 FROM att_ratio;
 
 CREATE TABLE GoodForDancing
 WITH att_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS att
-    FROM business
-    WHERE attributesGoodForDancing = 'True'
-    GROUP BY postal_code),
-total_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS total
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesGoodForDancing = 'True' THEN COUNT(if( attributesGoodForDancing = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
     FROM business
 	WHERE attributesGoodForDancing IN ('Unlisted', 'True', 'False')
     GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
 att_ratio AS(
-	SELECT a.zipcode, a.att, t.total, a.att/t.total AS att_rat, ROUND(PERCENT_RANK() OVER (ORDER BY a.att/t.total), 2) AS percentile
-	FROM att_count a JOIN total_count t ON a.zipcode = t.zipcode)
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
 SELECT *
 FROM att_ratio;
 
 CREATE TABLE WheelchairAccessible
 WITH att_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS att
-    FROM business
-    WHERE attributesWheelchairAccessible = 'True'
-    GROUP BY postal_code),
-total_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS total
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesWheelchairAccessible = 'True' THEN COUNT(if( attributesWheelchairAccessible = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
     FROM business
 	WHERE attributesWheelchairAccessible IN ('Unlisted', 'True', 'False')
     GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
 att_ratio AS(
-	SELECT a.zipcode, a.att, t.total, a.att/t.total AS att_rat, ROUND(PERCENT_RANK() OVER (ORDER BY a.att/t.total), 2) AS percentile
-	FROM att_count a JOIN total_count t ON a.zipcode = t.zipcode)
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
 SELECT *
 FROM att_ratio;
 
 CREATE TABLE DogsAllowed
 WITH att_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS att
-    FROM business
-    WHERE attributesDogsAllowed = 'True'
-    GROUP BY postal_code),
-total_count AS(
-	SELECT postal_code AS zipcode, COUNT(business_id) AS total
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesDogsAllowed = 'True' THEN COUNT(if(attributesDogsAllowed = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
     FROM business
 	WHERE attributesDogsAllowed IN ('Unlisted', 'True', 'False')
     GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
 att_ratio AS(
-	SELECT a.zipcode, a.att, t.total, a.att/t.total AS att_rat, ROUND(PERCENT_RANK() OVER (ORDER BY a.att/t.total), 2) AS percentile
-	FROM att_count a JOIN total_count t ON a.zipcode = t.zipcode)
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
+SELECT *
+FROM att_ratio;
+
+CREATE TABLE GoodForBikers
+WITH att_count AS(
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesBikeParking = 'True' THEN COUNT(if(attributesBikeParking = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
+    FROM business
+	WHERE attributesBikeParking IN ('Unlisted', 'True', 'False')
+    GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
+att_ratio AS(
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
+SELECT *
+FROM att_ratio;
+
+CREATE TABLE RestaurantDelivery
+WITH att_count AS(
+	SELECT postal_code AS zipcode, 
+    (CASE WHEN attributesRestaurantsDelivery = 'True' THEN COUNT(if(attributesRestaurantsDelivery = 'True', business_id, NULL))
+    ELSE 0
+    END) AS att,
+	COUNT(business_id) AS total
+    FROM business
+	WHERE attributesRestaurantsDelivery IN ('Unlisted', 'True', 'False')
+    GROUP BY postal_code),
+att_0 AS
+	(SELECT zipcode, att, total, 0 AS att_rat, 0 AS percentile
+    FROM att_count 
+    WHERE att = 0),
+att_ratio AS(
+	SELECT zipcode, att, total, att/total AS att_rat, 
+    ROUND(PERCENT_RANK() OVER (ORDER BY att/total), 2) AS percentile
+	FROM att_count a
+    WHERE att > 0
+)
+SELECT * FROM att_0
+UNION
 SELECT *
 FROM att_ratio;
     `;
@@ -120,6 +202,8 @@ app.post('/temptabledrop', (req, res) => {
         DROP TABLE GoodForDancing;
         DROP TABLE WheelchairAccessible;
         DROP TABLE DogsAllowed;
+        DROP TABLE GoodForBikers;
+        DROP TABLE RestaurantsDelivery
     `;
 
     connection.query(query, function(err, rows, fields) {
@@ -185,23 +269,77 @@ const search = (req, res) => {
     // Defines attribute table name
     // DEFAULT NULL
     //let attribute = req.params.attribute;
-    let attribute = 'attributesGoodForKids';
-    let attribute_tbl = 'GoodForKids';
+    let attribute = req.params.attribute;
+    let attribute_tbl = req.params.attribute_tbl;
 
     // DEFAULT NULL
-    let tag = 'Food';
+    let tags = req.params.tag;
 
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
-    let order_key = 'distance';
+    let order_key = req.params.order_key;
     // DEFAULT ASC
     //let order_direction = req.params.order_direction;
-    let order_direction = 'ASC';
+    let order_direction = req.params.order_direction;
+
+    let gfk = req.params.gfk;
+    let gfd = req.params.gfd;
+    let da = req.params.da;
+    let wa = req.params.wa;
+    let gfb = req.params.gfb;
+    let rd = req.params.rd;
+
+
 
     let query = '';
 
-    if (bus_or_zip === 'zipcode') {
+    if (gfk > 0 || gfd > 0 || da > 0 || wa > 0 || gfb > 0 || rd > 0) {
+        query = `
+        WITH coordinates AS
+        (SELECT zip,
+        69 * DEGREES(acos( 
+        cos( radians(latitude) ) *
+        cos( radians(${latitude}) ) * 
+        cos( radians(${longitude}) - radians(longitude ) ) +
+        sin( radians( latitude ) ) * 
+        sin( radians(${latitude}) ) ) )  as distance
+        FROM zipcode
+        WHERE 69 * DEGREES(acos( 
+        cos( radians(latitude) ) *
+        cos( radians(${latitude}) ) * 
+        cos( radians(${longitude}) - radians(longitude ) ) +
+        sin( radians(latitude) ) * 
+        sin( radians(${latitude}) ) ) ) <= ${radius}),
+        attribute AS
+        (SELECT zipcode, percentile
+        FROM ${attribute_tbl}
+        WHERE percentile >= .7),
+        budget AS
+        (SELECT zip, 2021_02
+        FROM home_values
+        WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}),
+        c_scores AS
+            (SELECT a1.zipcode as zip, (${gfk} * a1.percentile + ${gfd} * a2.percentile + ${wa} * a3.percentile + ${da} * a4.percentile + ${gfb} * a5.percentile + ${rd} * a6.percentile)*100 AS comScore
+            FROM GoodForKids a1 
+            JOIN GoodForDancing a2 ON a1.zipcode = a2.zipcode
+            JOIN WheelchairAccessible a3 ON a1.zipcode = a3.zipcode
+            JOIN DogsAllowed a4 ON a1.zipcode = a4.zipcode
+            JOIN GoodForBikers a5 ON a1.zipcode = a5.zipcode
+            JOIN RestaurantDelivery a6 ON a1.zipcode = a6.zipcode)
+        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS Median_Home_Value, AVG(star) AS avgBusinessRating, cs.comScore AS 'Compatibility Score'
+        FROM zipcode z
+        JOIN c_scores cs ON z.zip = cs.zip
+        JOIN coordinates c ON c.zip = z.zip 
+        LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
+        LEFT OUTER JOIN budget h ON z.zip = h.zip 
+        LEFT OUTER JOIN business b ON z.zip=b.postal_code
+        WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
+            + (req.params.attribute === "undefined" ? `` : ` AND percentile >= .7`)
+            + `GROUP BY z.zip
+        ORDER BY comScore DESC
+        LIMIT 50;`
+    }else if (bus_or_zip === 'zipcode') {
         query = `
         WITH coordinates AS
         (SELECT zip,
@@ -226,7 +364,7 @@ const search = (req, res) => {
         (SELECT zip, 2021_02
         FROM home_values
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget})
-        SELECT z.zip, z.city, z.state, z.county, COUNT(business_id) AS 'Num_Businesses_Listed', 2021_02 AS Median_Home_Value
+        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS Median_Home_Value, AVG(star) AS avgBusinessRating
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
@@ -258,13 +396,13 @@ const search = (req, res) => {
         (SELECT zip, 2021_02
         FROM home_values
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget})
-    SELECT b.name, b.city, b.state, b.postal_code, z.county, b.stars AS 'Rating (Out of 5)'
+    SELECT b.name, b.city, b.state, b.postal_code AS zip, z.county, b.stars AS 'rating (Out of 5)'
     FROM zipcode z
     LEFT OUTER JOIN budget h ON z.zip = h.zip
     JOIN business b ON b.postal_code = z.zip
     JOIN coordinates c ON b.business_id = c.id
     WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} AND ${attribute} = 'True'
-    AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories = ${tag})
+    AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories = ${tags})
     ORDER BY ${order_key} ${order_direction}
     LIMIT 50;
         `
@@ -281,16 +419,13 @@ const search = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:attribute_tbl/:tag/:order_key/:order_direction', search);
+app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:attribute_tbl/:tag/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
 
 
 /********** LOCAL_BUSINESSES ***********/
 
 const locals = (req, res) => {
 
-    // Says if we are looking for businesses or zipcodes
-    //DEFAULTS TO ZIPCODE
-    let bus_or_zip = 'zipcode';
 
     //DEFAULTS SET TO PHOENIX COORDINATES, TO GUIDE USERS INITIALLY TOWARD AREA WHERE WE HAVE MOST BUSINESS INFO
     //DEFAULT 33.44
@@ -300,27 +435,7 @@ const locals = (req, res) => {
 
     //DEFAULT 25000
     let radius = req.params.radius ;
-    //DEFAULT 0
-    let minBudget = req.params.minBudget ;
-    //DEFAULT 999999999
-    let maxBudget = req.params.maxBudget;
 
-    // Defines attribute table name
-    // DEFAULT NULL
-    //let attribute = req.params.attribute;
-    let attribute = 'attributesGoodForKids';
-    let attribute_tbl = 'GoodForKids';
-
-    // DEFAULT NULL
-    let tag = 'Food';
-
-
-    // DEFAULT DISTANCE
-    //let order_key = req.params.order_key;
-    let order_key = 'distance';
-    // DEFAULT ASC
-    //let order_direction = req.params.order_direction;
-    let order_direction = 'ASC';
 
     let query = `
     WITH coordinates AS
@@ -338,10 +453,11 @@ const locals = (req, res) => {
         cos( radians(${longitude}) - radians(longitude ) ) +
         sin( radians(latitude) ) * 
         sin( radians(${latitude}) ) ) ) <= ${radius})
-    SELECT name, city, state, postal_code, stars AS 'Rating (Out of 5)'
+    SELECT name, city, state, postal_code AS zip, stars AS 'rating'
     FROM business b
     JOIN coordinates c ON b.business_id = c.id
     WHERE NOT EXISTS (SELECT * FROM business b2 WHERE b.name=b2.name AND b.business_id <> b2.business_id)
+    ORDER BY distance ASC, b.name ASC
     limit 50;
     `;
 
@@ -357,19 +473,15 @@ const locals = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:attribute_tbl/:tag/:order_key/:order_direction', locals);
+app.get('/locals/:latitude/:longitude/:radius', locals);
 
 /********** Restaurants ***********/
 
 const restaurants = (req, res) => {
 
-    // Says if we are looking for businesses or zipcodes
-    //DEFAULTS TO ZIPCODE
-    let bus_or_zip = 'zipcode';
-
     //DEFAULTS SET TO PHOENIX COORDINATES, TO GUIDE USERS INITIALLY TOWARD AREA WHERE WE HAVE MOST BUSINESS INFO
     //DEFAULT 33.44
-    let latitude = req.params.latitude ;
+    let latitude = req.params.latitude;
     //DEFAULT 112.07
     let longitude = req.params.longitude ;
 
@@ -382,25 +494,20 @@ const restaurants = (req, res) => {
 
     // Defines attribute table name
     // DEFAULT NULL
-    //let attribute = req.params.attribute;
-    let attribute = 'attributesGoodForKids';
-    let attribute_tbl = 'GoodForKids';
-
-    // DEFAULT NULL
-    let tag = 'Food';
+    let attribute_tbl = req.params.attribute_tbl;
 
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
-    let order_key = 'distance';
+    let order_key = req.params.order_key;
     // DEFAULT ASC
     //let order_direction = req.params.order_direction;
-    let order_direction = 'ASC';
+    let order_direction = req.params.order_direction;
 
     //DEFAULT 1
-    let rating = 3;
-    let r_price = 2;
-    let r_count = 10;
+    let rating = req.params.rating;
+    let r_price = req.params.r_price;
+    let r_count = req.params.r_count;
 
     let query = `
     WITH coordinates AS
@@ -430,7 +537,7 @@ const restaurants = (req, res) => {
         (SELECT postal_code, COUNT(business_id) AS bcount
         FROM business
         GROUP BY postal_code)
-        SELECT z.zip, z.city, z.state, z.county, bcount AS 'Num_Businesses_Listed', AVG(stars) AS 'Average Rating (Out of 5)', AVG(attributesRestaurantsPriceRange) AS 'Average Price ($ - $$$$)', COUNT(attributesRestaurantsPriceRange) AS '# Restaurants Listed'
+        SELECT z.zip, z.city, z.state, z.county, AVG(stars) AS 'rating', AVG(attributesRestaurantsPriceRange) AS 'Average Price ($ - $$$$)', COUNT(attributesRestaurantsPriceRange) AS '# Restaurants Listed'
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
@@ -438,7 +545,7 @@ const restaurants = (req, res) => {
         JOIN business_count bc ON z.zip=bc.postal_code
         JOIN business b ON z.zip=b.postal_code
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
-                + (req.params.attribute === "undefined" ? `` : ` AND percentile >= .7`)
+                + (req.params.attribute_tbl === "undefined" ? `` : ` AND percentile >= .7`)
                 + `GROUP BY z.zip
         HAVING AVG(stars) >= ${rating} AND AVG(attributesRestaurantsPriceRange) <= ${r_price} AND COUNT(attributesRestaurantsPriceRange) >= ${r_count}
         ORDER BY ${order_key} ${order_direction}
@@ -457,7 +564,7 @@ const restaurants = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:attribute_tbl/:tag/:order_key/:order_direction/:rating/:r_price/:r_count', restaurants);
+app.get('/restaurants/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute_tbl/:order_key/:order_direction/:rating/:r_price/:r_count', restaurants);
 
 
 
