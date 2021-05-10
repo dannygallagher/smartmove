@@ -61,13 +61,13 @@ export default function Search() {
     // User input variables
     const [dealBreaker, setDealBreaker] = useState("");
     const [zipOrBusiness, setZipOrBusiness] = useState("zip");
-    const [radius, setRadius] = useState();
+    const [radius, setRadius] = useState(25000);
     const [location, setLocation] = useState();
     const [locationType, setLocationType] = useState("zip");
-    const [longitude, setLongitude] = useState();
-    const [latitude, setLatitude] = useState();
-    const [minBudget, setMinBudget] = useState();
-    const [maxBudget, setMaxBudget] = useState();
+    const [longitude, setLongitude] = useState(-112.07);
+    const [latitude, setLatitude] = useState(33.44);
+    const [minBudget, setMinBudget] = useState(0);
+    const [maxBudget, setMaxBudget] = useState(999999999);
     const [errorMessage, setErrorMessage] = useState("");
     const [attributes, setAttributes] = useState(initialAttributesState);
     const [tags, setTags] = useState(initialTagsState);
@@ -88,7 +88,7 @@ export default function Search() {
     // Showing Details page
     const [zip, setZip] = useState();
     const [showDetails, setShowDetails] = useState(false);
-    
+
     //SAMPLE OUTPUT
     let sampleZipOutput = {
         zip: '08302',
@@ -162,7 +162,6 @@ export default function Search() {
             }
         });
     }
-
 
     const foodQuery = () => {
 
