@@ -17,25 +17,6 @@ const config = {
 config.connectionLimit = 10;
 const connection = mysql.createPool(config)
 
-// TEST QUERY  
-const testQuery = (req, res) => {
-    var query = `
-        SELECT *
-        FROM business
-        WHERE city = 'Phoenix' AND state = 'AZ'
-        LIMIT 10;
-    `;
-
-    connection.query(query, function(err, rows, fields) {
-        if (err) {
-            console.log(err);
-        } else {
-            //console.log(rows);
-            res.json(rows);
-        }
-    })
-}
-
 // details page bar graph of business categories 
 const ethnicPie = (req, res) => {
     var inputZip = req.params.zip;
@@ -52,13 +33,7 @@ const ethnicPie = (req, res) => {
             SUM(WA_FEMALE + WA_MALE) AS White
         FROM demographics 
         GROUP BY STNAME, CTYNAME)
-    SELECT 
-        (Asian/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS Asian, 
-        (Black/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS Black, 
-        (AmericanIndian/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS AmericanIndian, 
-        (NativeHawaiianOtherPacific/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS NativeHawaiianOtherPacific, 
-        (White/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS White, 
-        (TwoOrMoreRaces/(Asian + Black + AmericanIndian + NativeHawaiianOtherPacific + White + TwoOrMoreRaces))*100 AS TwoOrMoreRaces
+    SELECT Asian, Black, AmericanIndian, NativeHawaiianOtherPacific, White, TwoOrMoreRaces
     FROM zipcode z JOIN demographicsSummedByEthnicities d ON (z.state = d.STNAME AND z.county = d.CTYNAME)
     WHERE zip = ${inputZip};
 
@@ -106,7 +81,7 @@ const genderPie = (req, res) => {
     (SELECT STNAME, CTYNAME, SUM(TOT_FEMALE) AS Females, SUM(TOT_MALE) AS Males
         FROM demographics 
         GROUP BY STNAME, CTYNAME)
-    SELECT (Females/(Females + Males))*100 AS Percent_Female, (Males/(Females + Males))*100 AS Percent_Male
+    SELECT Females AS Percent_Female, Males AS Percent_Male
     FROM zipcode z JOIN demographicsSummedByGender d ON (z.state = d.STNAME AND z.county = d.CTYNAME)
     WHERE zip = ${inputZip};
     `;
@@ -121,7 +96,7 @@ const genderPie = (req, res) => {
     })
 }
 
-// details page list of local restaurants 
+// details page list of local restaurants thats not in any other region 
 const restaurantList = (req, res) => {
     var inputZip = req.params.zip;
     var query = `
@@ -137,10 +112,10 @@ const restaurantList = (req, res) => {
                 FROM restaurants r2
                 WHERE r2.name = r1.name AND r2.postal_code != ${inputZip}) 
             ORDER BY r1.stars DESC
-            LIMIT 10)
+            LIMIT 15)
     SELECT DISTINCT name, stars
     FROM topTenLocalRestaurants t JOIN business_categories bc ON t.business_id = bc.business_id
-    WHERE categories in ('Restaurants', 'Food');
+    WHERE categories IN ('Restaurants', 'Food');
     `;
 
     connection.query(query, function(err, rows, fields) {
@@ -153,7 +128,55 @@ const restaurantList = (req, res) => {
     })
 }
 
-app.get('/sample', testQuery)
+// details page line chart of home values
+const homeLine = (req, res) => {
+    var inputZip = req.params.zip;
+    var query = `
+    SELECT 
+        2020_09 AS September, 
+        2020_10 AS October, 
+        2020_11 AS November, 
+        2020_12 AS December, 
+        2021_01 AS January,
+        2021_02 AS February
+    FROM home_values
+    WHERE zip = ${inputZip};
+    `;
+
+    connection.query(query, function(err, rows, fields) {
+        if (err) {
+            console.log(err);
+        } else {
+            //console.log(rows);
+            res.json(rows);
+        }
+    })
+}
+
+// details page line chart of rent prices 
+const rentLine = (req, res) => {
+    var inputZip = req.params.zip;
+    var query = `
+    SELECT 
+        2020_09 AS September, 
+        2020_10 AS October, 
+        2020_11 AS November, 
+        2020_12 AS December, 
+        2021_01 AS January,
+        2021_02 AS February
+    FROM rental_prices
+    WHERE zip = ${inputZip};
+    `;
+
+    connection.query(query, function(err, rows, fields) {
+        if (err) {
+            console.log(err);
+        } else {
+            //console.log(rows);
+            res.json(rows);
+        }
+    })
+}
 
 // pie chart of ethnicity
 app.get('/ethnicPieChart/:zip', ethnicPie)
@@ -166,6 +189,12 @@ app.get('/genderPieChart/:zip', genderPie)
 
 // list of 10 local restaurants
 app.get('/restaurants/:zip', restaurantList)
+
+// last 6 month of home values
+app.get('/homeValues/:zip', homeLine)
+
+// last 6 month of rent prices
+app.get('/rentPrices/:zip', rentLine)
 
 app.listen(4000, () => {
     console.log('running on port 4000');

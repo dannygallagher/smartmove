@@ -18,11 +18,20 @@ export default function Details() {
                 padding: theme.spacing(2),
                 textAlign: 'center',
                 color: theme.palette.text.secondary,
+                backgroundColor: "rgba(245,245,245,1)"
             },
             chart: {
+              backgroundColor: "rgba(245,245,245,1)"
 
             },
+            pieChart: {
+              padding: theme.spacing(4),
+              backgroundColor: "rgba(245,245,245,1)"
+
+            },
+
             headings: {
+              backgroundColor: "rgba(245,245,245,1)"
             }
         }));
     const classes = useStyles();
@@ -33,6 +42,8 @@ export default function Details() {
       fetchCategories();
       fetchGender();
       fetchLocalRest();
+      fetchHomeValues();
+      fetchRentPrices();
     }, []);
 
     // CREATE HOOK FOR ZIPCODE
@@ -112,33 +123,23 @@ export default function Details() {
     });
     
     // line chart data and options initialization
-    const [lineData, setLineData] = useState({
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-          {
-            label: "First dataset",
-            data: [33, 53, 85, 41, 44, 65],
-            fill: true,
-            backgroundColor: "rgba(75,192,192,0.2)",
-            borderColor: "rgba(75,192,192,1)"
-          },
-          {
-            label: "Second dataset",
-            data: [33, 25, 35, 51, 54, 76],
-            fill: false,
-            borderColor: "#742774"
-          }
-          
-        ],
-        legend: {
-          display: false
-        }
-    });
+    const [homeLineData, setHomeLineData] = useState({});
+    const [rentLineData, setRentLineData] = useState({});
     const [lineOptions, setLineOptions] = useState({
-      options: {}
+      options: {
+        scales: {
+          yAxes: [
+              {
+                  ticks: {
+                      beginAtZero: true
+                  }
+              }
+          ]
+        }
+      }
     });
 
-    /* ---------  FETCH DATA FOR ALL GRAPHS -----------*/
+    /* -----------------  FETCH CATEGORIES DATA -------------------*/
 
     const fetchCategories = () => {
         // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
@@ -176,6 +177,7 @@ export default function Details() {
         });
     };
 
+    /*---------------------- FETCH GENDER INFO  -------------------------*/
     
     const fetchGender = () => {
         // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
@@ -210,6 +212,8 @@ export default function Details() {
         });
     };
     
+    /*---------------------- FETCH ETHNICITY  -------------------------*/
+
     const fetchEthnic = () => {
         // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
         fetch(`http://localhost:4000/ethnicPieChart/'${zip}'`, 
@@ -252,7 +256,7 @@ export default function Details() {
     };
 
     /*---------------------- FETCH LOCAL RESTAURANT LIST -------------------------*/
-
+    
     const[restData, setRestData] = useState([]); //Hook for updating state of some specific results
     const fetchLocalRest = () => {
         // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
@@ -276,6 +280,83 @@ export default function Details() {
         });
     };
     
+    /*---------------------- FETCH HOME VALUES -------------------------*/
+
+    
+    const fetchHomeValues = () => {
+        // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
+        fetch(`http://localhost:4000/homeValues/${zip}`, 
+        {
+            method: 'GET', // The type of HTTP request
+        }).then(res => {
+            // console.log(res.json());
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(resultsList => {
+            var row = resultsList[0];
+            setHomeLineData({
+              labels: Object.keys(row),
+              datasets: [
+                  {   
+                      label: 'Average Home Value in US Dollars',
+                      data: [
+                        row.September, 
+                        row.October,
+                        row.November,
+                        row.December,
+                        row.January,
+                        row.February
+                      ],
+                      backgroundColor: 'rgba(75,192,192, 0.2)',
+                      borderColor: 'rgba(75,192,192,1)',
+                      fill: true,
+                      hoverOffset: 4
+                  }
+              ]
+            });
+        });
+    };
+
+    /*---------------------- FETCH RENT PRICES -------------------------*/
+
+    const fetchRentPrices = () => {
+      // Send an HTTP request to the server to pull the information for businesses from Phoenix, AZ
+      fetch(`http://localhost:4000/rentPrices/${zip}`, 
+      {
+          method: 'GET', // The type of HTTP request
+      }).then(res => {
+          // console.log(res.json());
+          return res.json();
+      }).catch((err) => {
+          console.log(err)
+      }).then(resultsList => {
+          var row = resultsList[0];
+          setRentLineData({
+            labels: Object.keys(row),
+              datasets: [
+                  {   
+                      label: 'Average Rent Price in US Dollars',
+                      data: [
+                        row.September, 
+                        row.October,
+                        row.November,
+                        row.December,
+                        row.January,
+                        row.February
+                      ],
+                      backgroundColor: 'rgba(116,39,116, 0.2)',
+                      borderColor: 'rgba(116,39,116, 1)',
+                      fill: true,
+                      hoverOffset: 4
+                  }
+              ]
+          });
+      });
+  };
+
+
+
 
     return (
         <div className={classes.root}>
@@ -286,32 +367,58 @@ export default function Details() {
           </Grid>
           <Grid container spacing={3}>
             <Grid item xs={3}>
-              <Paper className={classes.paper}>
-                <div className={classes.chart}>
-                    <Doughnut data={doughnutData} options={doughnutOptions.options} />
-                </div>
-              </Paper>
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Paper className={classes.paper}>
+                    <div className={classes.chart}>
+                        <Doughnut data={doughnutData} options={doughnutOptions.options} />
+                    </div>
+                  </Paper>
+                </Grid>
+              </Grid> 
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Paper className={classes.paper}>
+                    <div className={classes.pieChart}>
+                        <Pie data={genderPieData} options={genderPieOptions.options} />
+                    </div>
+                  </Paper>
+                </Grid>
+              </Grid> 
             </Grid>
             <Grid item xs={5}>
-              <Paper className={classes.paper}> 
-                <div className={classes.chart}>
-                    <Bar data={barData} options={barOptions.options} />
-                </div>
-              </Paper>
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Paper className={classes.paper}> 
+                    <div className={classes.chart}>
+                        <Bar data={barData} options={barOptions.options} />
+                    </div>
+                  </Paper>
+                </Grid>
+              </Grid> 
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Paper className={classes.paper}>
+                    <div className={classes.chart}>
+                        <Line data={homeLineData} options={lineOptions.options} />
+                    </div>
+                  </Paper>                  
+                </Grid>
+              </Grid> 
+              <Grid container spacing={1}>
+                <Grid item xs>
+                  <Paper className={classes.paper}> 
+                    <div className={classes.chart}>
+                        <Line data={rentLineData} options={lineOptions.options} />
+                    </div>
+                  </Paper>
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={3}>
-              <Paper className={classes.paper}>
-                <div className={classes.chart}>
-                    <Pie data={genderPieData} options={genderPieOptions.options} />
-                </div>
-              </Paper>
-            </Grid>
-          </Grid>
-          <Grid container spacing={1}>
             <Grid item xs>
-              <Paper className={classes.heading}>
+              <Paper className={classes.headings}>
                 <div className="restaurants-header">
-                  <div className="header-lg"><strong>Top 10 Local Restaurant</strong></div>
+                  <div className="header-lg"><strong>Top 15 Local Restaurant</strong></div>
                   <div className="header"><strong>Rating</strong></div>
                 </div>
                 <div className="results-container">
@@ -320,6 +427,15 @@ export default function Details() {
               </Paper>
             </Grid>
           </Grid>
+          {/* <Grid container spacing={1}>
+            <Grid item xs>
+              <Paper className={classes.paper}> 
+                <div className={classes.chart}>
+                    <Bar data={barData} options={barOptions.options} />
+                </div>
+              </Paper>
+            </Grid>
+          </Grid> */}
         </div>
     );
 }
