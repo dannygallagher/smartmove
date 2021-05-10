@@ -153,23 +153,23 @@ const search = (req, res) => {
             69 * DEGREES(acos( 
             cos( radians(latitude) ) *
             cos( radians(${latitude}) ) * 
-            cos( radians(${longitude}) - radians(longitude ) ) +
-            sin( radians( latitude ) ) * 
+            cos( radians(${longitude}) - radians(longitude) ) +
+            sin( radians( latitude) ) * 
             sin( radians(${latitude}) ) ) )  as distance
             FROM zipcode)
         SELECT z.zip, z.city, z.state, z.county, COUNT(business_id) AS Num_Businesses_Listed` 
         + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : `, 2021_02 AS Median_Home_Value`)
         + `
         FROM zipcode z
-        JOIN coordinates c ON c.zip = z.zip 
+        JOIN coordinates c ON c.zip = z.zip
         LEFT OUTER JOIN GoodForKids a ON z.zip= a.zipcode
         `
         + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` JOIN home_values h ON z.zip = h.zip`)
         +
-        `    
+        `
         JOIN business b ON z.zip=b.postal_code
-        WHERE c.distance <= 100`
-        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` AND 2021_02 BETWEEN 50000 AND 1000000`)
+        WHERE c.distance <= ${radius}`
+        + (req.params.minBudget === "undefined" && req.params.maxBudget === "undefined" ? `` : ` AND 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`)
         + ` AND percentile >= .7
         GROUP BY z.zip
         ORDER BY a.percentile DESC
@@ -187,7 +187,54 @@ const search = (req, res) => {
     })
 }
 
+const zoom = (req, res) => {
+
+    let location = req.params.location;
+    let locationType = req.params.locationType;
+
+
+    let query =
+    `
+        SELECT z.${locationType} as ${locationType}, avg(z.latitude) as latitude, avg(z.longitude) as longitude
+        FROM zipcode z
+        WHERE z.${locationType} = '${location}'
+        GROUP BY z.${locationType}
+    `;
+
+    connection.query(query, function(err, rows, fields){
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('Success!');
+            console.log(rows);
+            res.json(rows);
+        }
+    })
+}
+
+const tags = (req, res) => {
+    let query =
+    `
+        SELECT bc.categories as categories, COUNT(bc.categories) as count
+        FROM business_categories bc
+        GROUP BY bc.categories
+        ORDER BY count DESC
+        LIMIT 10
+    `;
+
+    connection.query(query, function(err, rows, fields){
+        if (err){
+            console.log(err);
+        }else {
+            console.log('Success!');
+            console.log(rows);
+            res.json(rows);
+        }
+    })
+}
+
 app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget', search);
+app.get('/search/:location/:locationType', zoom);
 
 
 

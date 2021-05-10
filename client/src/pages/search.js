@@ -3,7 +3,7 @@ import DeckGL from '@deck.gl/react';
 import { LineLayer, TextLayer, PathLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { StaticMap, ReactMapGL, Marker } from 'react-map-gl';
 import { makeStyles } from "@material-ui/core/styles";
-import { Grid, Paper, Divider, TextField } from '@material-ui/core';
+import { Grid, Paper, Divider, TextField, Checkbox } from '@material-ui/core';
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1Ijoiaml3b25pZTExIiwiYSI6ImNrbnV2eWg0bDBlZnUyd3BqcXN4cGRwMTIifQ.mM4cn9MeLMvpAgOeZsfovA';
 
@@ -18,20 +18,62 @@ export default function Search() {
         bearing: 0
     };
 
-    // Hook for managing map view state
+    // Attributes initial state
+    const initialAttributesState = {
+        GoodForKids: false,
+        GoodForDancing: false,
+        DogsAllowed: false,
+        WheelchairAccessible: false,
+        GoodForBikers: false,
+        RestaurantDelivery: false
+    };
+
+    // Tags initial state
+    const initialTagsState = {
+        "Restaurants": false,
+        "Shopping": false,
+        "Home Services": false,
+        "Food": false,
+        "Health & Medical": false,
+        "Beauty & Spas": false,
+        "Local Services": false,
+        "Automotive": false,
+        "Event Planning & Services": false,
+        "Active Life": false,
+
+    };
+
+    // Tags list
+    const tagsList = ["Restaurants", "Shopping", "Home Services", "Food", "Health & Medical", 
+    "Beauty & Spas", "Local Services", "Automotive", "Event Planning & Services", "Active Life"];
+
+    // Hooks for managing map view state
     const [viewState, setViewState] = useState(initialViewState);
     
-    const [radius, setRadius] = useState();
-    const [longitude, setLongitude] = useState();
+    const [location, setLocation] = useState();
+    const [locationType, setLocationType] = useState("zip");
     const [latitude, setLatitude] = useState();
+    const [longitude, setLongitude] = useState();
+    const [errorMessage, setErrorMessage] = useState("");
+
+
+    const [radius, setRadius] = useState();
     const [minBudget, setMinBudget] = useState();
     const [maxBudget, setMaxBudget] = useState();
+
+    const [attributes, setAttributes] = useState(initialAttributesState);
+    const [tags, setTags] = useState(initialTagsState);
+
+    // Hooks for performing actions after render
+
+    // Click Handlers
 
     const mapClickHandler = (info) => {
         console.log("Longitude: " + info.coordinate[0]);
         console.log("Latitude: " + info.coordinate[1]);
         setLongitude(info.coordinate[0]);
         setLatitude(info.coordinate[1]);
+        console.log(locationType);
 
 
     }
@@ -130,6 +172,34 @@ export default function Search() {
         });
     }
 
+    const zoomQuery = () => {
+        fetch(`http://localhost:4000/search/${location}/${locationType}`,
+        {
+            method: 'GET',
+        }).then(res => {
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(coordinates => {
+            if (coordinates[0] === undefined){
+                setErrorMessage("Invalid Location")
+                return;
+            }
+            setLatitude(coordinates[0].latitude);
+            setLongitude(coordinates[0].longitude);
+            setViewState({
+                latitude: coordinates[0].latitude,
+                longitude: coordinates[0].longitude,
+                zoom: 5,
+                pitch: 0,
+                bearing: 0
+            });
+            setErrorMessage("");
+        });
+        
+        
+    }
+
     const useStyles = makeStyles((theme) => ({
         gridGeneral: {
             width: '100%',
@@ -165,22 +235,35 @@ export default function Search() {
         <div>
             <button onClick={searchQuery}>Search</button>
             <Grid container spacing={4} className={classes.gridGeneral}>
-                <Grid item xs={12} md={4} className={classes.gridTop}>
+                <Grid item xs={12} md={3} className={classes.gridTop}>
                     <Grid item xs={12}>
                         <Paper className={classes.paper}>
-                            <div><h2>Preferences</h2></div>
-                            
-                            <TextField
-                            id="radius"
-                            required
-                            label="Radius"
-                            value={radius}
-                            onChange={e => setRadius(e.target.value)}
-                            margin="dense"
-                            />
+                            <div><h3>Search Center</h3></div>
+                            <div><p>Please click on map to populate coordinates</p></div>
 
                             <div></div>
 
+                            <TextField
+                            id="location"
+                            label="Location"
+                            value={location}
+                            onChange={e => setLocation(e.target.value)}
+                            margin="dense"
+                            />
+                            
+                            <div></div>
+
+                            <select onChange={e => setLocationType(e.target.value)}>
+                            <option value="zip">Zipcode</option>
+                            <option value="city">City</option>
+                            <option value="state">State</option>
+                            </select>
+                            
+
+                            <button onClick={zoomQuery}>Zoom</button>
+
+                            <div><p>{errorMessage}</p></div>
+                            
                             <TextField
                             id="latitude"
                             required
@@ -199,39 +282,114 @@ export default function Search() {
                             value={longitude || ''}
                             onChange={e => setLongitude(e.target.value)}
                             margin="dense"
-                            /> 
+                            />
 
                             <div></div>
-                            
-                            <TextField
-                            id="min-budget"
-                            label="min-budget"
-                            value={minBudget}
-                            onChange={e => setMinBudget(e.target.value)}
-                            margin="dense"
-                            />
 
-                            <TextField
-                            id="max-budget"
-                            label="max-budget"
-                            value={maxBudget}
-                            onChange={e => setMaxBudget(e.target.value)}
-                            margin="dense"
-                            />
-                            <div>Attribute</div>
-                            <div>City</div>
-                            <div>State</div>
                         </Paper>
                     </Grid>
                     <Divider className={classes.divider} />
                     <Grid item xs={12}>
                         <Paper className={classes.paper}>
-                            <div>More Attributes</div>
-                            <div>More Attributes</div>
-                            <div>More Attributes</div>
-                            <div>More Attributes</div>
-                            <div>More Attributes</div>
-                            <div>More Attributes</div>
+                            <div><h3>Filters</h3></div>
+                            
+                            <TextField
+                            id="radius"
+                            required
+                            label="Radius"
+                            value={radius}
+                            onChange={e => setRadius(e.target.value)}
+                            margin="dense"
+                            />
+
+                            <div></div>
+                            
+                            <TextField
+                            id="min-budget"
+                            label="Min Budget"
+                            value={minBudget}
+                            onChange={e => setMinBudget(e.target.value)}
+                            margin="dense"
+                            />
+
+                            <div></div>
+
+                            <TextField
+                            id="max-budget"
+                            label="Max Budget"
+                            value={maxBudget}
+                            onChange={e => setMaxBudget(e.target.value)}
+                            margin="dense"
+                            />
+
+                            <div></div>
+                        </Paper>
+                    </Grid>
+                    <Divider className={classes.divider} />
+                    <Grid item xs={12}>
+                        <Paper className={classes.paper}>
+                            <div><h3>Preferences</h3></div>
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.GoodForKids}
+                            onChange={e => setAttributes(prevState => {return {...prevState, GoodForKids: !attributes.GoodForKids}})}
+                            />
+                            <span>Good For Kids</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.GoodForDancing}
+                            onChange={e => setAttributes(prevState => {return {...prevState, GoodForDancing: !attributes.GoodForDancing}})}
+                            />
+                            <span>Good For Dancing</span>
+                            </label>
+                            </div>  
+                            
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.DogsAllowed}
+                            onChange={e => setAttributes(prevState => {return {...prevState, DogsAllowed: !attributes.DogsAllowed}})}
+                            />
+                            <span>Dogs Allowed</span>
+                            </label>
+                            </div>
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.WheelchairAccessible}
+                            onChange={e => setAttributes(prevState => {return {...prevState, WheelchairAccessible: !attributes.WheelchairAccessible}})}
+                            />
+                            <span>Wheelchair Accessible</span>
+                            </label>
+                            </div>    
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.GoodForBiker}
+                            onChange={e => setAttributes(prevState => {return {...prevState, GoodForBiker: !attributes.GoodForBiker}})}
+                            />
+                            <span>Good For Bikers</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={attributes.RestaurantDelivery}
+                            onChange={e => setAttributes(prevState => {return {...prevState, RestaurantDelivery: !attributes.RestaurantDelivery}})}
+                            />
+                            <span>Restaurant Delivery</span>
+                            </label>
+                            </div>      
+
                         </Paper>
                     </Grid>
                     <Grid item xs={12} className={classes.gridButton}>
@@ -239,6 +397,119 @@ export default function Search() {
                             <button>Advanced Filters</button>
                         </div>
                     </Grid>
+
+                    <Divider className={classes.divider} />
+                    <Grid item xs={12}>
+                        <Paper className={classes.paper}>
+                            <div><h3>Tags</h3></div>
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Restaurants"]}
+                            onChange={e => setTags(prevState => {return {...prevState, Restaurants: !tags["Restaurants"]}})}
+                            />
+                            <span>Restaurants</span>
+                            </label>
+                            </div>   
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Shopping"]}
+                            onChange={e => setTags(prevState => {return {...prevState, Shopping: !tags["Shopping"]}})}
+                            />
+                            <span>Shopping</span>
+                            </label>
+                            </div>   
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Home Services"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Home Services": !tags["Home Services"]}})}
+                            />
+                            <span>Home Services</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Food"]}
+                            onChange={e => setTags(prevState => {return {...prevState, Food: !tags["Food"]}})}
+                            />
+                            <span>Food</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Health & Medical"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Health & Medical": !tags["Health & Medical"]}})}
+                            />
+                            <span>Health &amp; Medical</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Beauty & Spas"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Beauty & Spas": !tags["Beauty & Spas"]}})}
+                            />
+                            <span>Beauty &amp; Spas</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Local Services"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Local Services": !tags["Local Services"]}})}
+                            />
+                            <span>Local Services</span>
+                            </label>
+                            </div>  
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Automotive"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Automotive": !tags["Automotive"]}})}
+                            />
+                            <span>Automotive</span>
+                            </label>
+                            </div> 
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Event Planning & Services"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Event Planning & Services": !tags["Event Planning & Services"]}})}
+                            />
+                            <span>Event Planning &amp; Services</span>
+                            </label>
+                            </div> 
+
+                            <div>
+                            <label>
+                            <Checkbox
+                            checked={tags["Active Life"]}
+                            onChange={e => setTags(prevState => {return {...prevState, "Active Life": !tags["Active Life"]}})}
+                            />
+                            <span>Active Life</span>
+                            </label>
+                            </div>   
+
+
+
+                            
+
+                        </Paper>
+                    </Grid>
+
                 </Grid>
                 <Grid item xs={12} md={8}>
                         <DeckGL
@@ -252,7 +523,7 @@ export default function Search() {
                             getCursor={() => {}}
                             onClick={mapClickHandler}
                             style={{
-                                position: 'relative', width: '100%', height: '100%', margin: '15px'
+                                position: 'relative', width: '100%', height: '70%', margin: '15px'
                             }}>
                             <StaticMap 
                                 mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
