@@ -18,7 +18,7 @@ const Map = ({viewState, setViewState, mapClickHandler}) => {
             getCursor={() => {}}
             onClick={mapClickHandler}
             style={{
-                position: 'relative', width: '100%', height: '60%', margin: '15px'
+                position: 'relative', width: '100%', height: '100%'
             }}>
             <StaticMap 
                 mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
