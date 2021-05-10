@@ -15,7 +15,7 @@ flex: 1 0 25%;
 }
 
 .details-header .title {
-    padding-left: 10%;
+    padding-left: 41%;
     padding-bottom: 10pt;
     color: beige;
     font-size: 40px; 
@@ -27,8 +27,8 @@ flex: 1 0 25%;
     width: 30%;
 }
 
-
-
-.details-header-container .details-header .title,  .details-header-container .details-header .back-button {display: inline}
+.back-button {
+    padding-left: 47%;
+}
 
   
