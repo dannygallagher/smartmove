@@ -1,0 +1,34 @@
+.restaurants-header, .results-container .restaurant {
+    padding-left: 10%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+}
+
+.restaurants-header .header-lg, .restaurant .name {
+flex: 1 0 50%;
+}
+
+.restaurants-header .header, .restaurant .rating {
+flex: 1 0 25%;
+}
+
+.details-header .title {
+    padding-left: 10%;
+    padding-bottom: 10pt;
+    color: beige;
+    font-size: 40px; 
+    height: 90%; 
+    width: 90%; 
+}
+
+.details-header .spacer {
+    width: 30%;
+}
+
+
+
+.details-header-container .details-header .title,  .details-header-container .details-header .back-button {display: inline}
+
+  

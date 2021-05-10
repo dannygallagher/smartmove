@@ -13,13 +13,11 @@ const RouteWrapper = props => {
   const tabNameToIndex = {
     0: "home",
     1: "search",
-    2: "details"
   }
 
   const indexToTabName = {
     home: 0,
     search: 1,
-    details: 2
   }
 
   const[selectedTab, setSelectedTab] = useState(indexToTabName[page]);
@@ -35,12 +33,10 @@ const RouteWrapper = props => {
               <Tabs value={selectedTab} onChange={handleTabSelect}>
                   <Tab label="Home" />
                   <Tab label="Search" />
-                  <Tab label="Details" />
               </Tabs>
           </AppBar>
           {selectedTab === 0 && <Home />}
           {selectedTab === 1 && <Search />}
-          {selectedTab === 2 && <Details />}
       </>
   )
 }
