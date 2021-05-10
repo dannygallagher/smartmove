@@ -288,24 +288,39 @@ const search = (req, res) => {
 
 
     // DEFAULT NULL
-    // let tags = req.params.tags;
+    let tags = req.params.tags;
 
-    // let tag_array = tags.split("-");
+    let tag_array = tags.split("-");
 
-    // console.log({tag_array});
+    console.log({tag_array});
 
-    // let tag_string = '(';
+    let tag_string = '(';
 
-    // for (var i in tag_array) {
+    for (var i = 0; i < tag_array.length; i++) {
+        let temp = tag_array[i];
+        console.log({temp});
+        if (temp === "HomeServices") {
+            temp = "Home Services";
+        } else if (temp === "Health&Medical") {
+            temp = "Heath & Medical";
+        } else if (temp === "Beauty&Spas") {
+            temp = "Beauty & Spas";
+        } else if (temp === "LocalServices") {
+            temp = "Local Services";
+        } else if (temp === "EventPlanning&Services") {
+            temp = "Event Planning & Services";
+        } else if (temp === "ActiveLife") { 
+            temp = "Active Life";
+        }
         
+        if (i < tag_array.length - 1) {
+            tag_string = tag_string + "'" + temp + "'" +  ', ';
+        } else {
+            tag_string = tag_string + "'" + temp + "'" + ')';
+        }
+    }
 
-    //     if(i<tag_array.length-1){
-    //         tag_string = tag_string + "'" + tag_array[i] + "'" +  ', ';
-    //     }else{tag_string = tag_string + "'" + tag_array[i] + "'" + ')';
-    //     }
-    // }
-
-    // console.log({tag_string});
+    console.log({tag_string});
 
 
     // DEFAULT DISTANCE
@@ -428,7 +443,7 @@ const search = (req, res) => {
         cos( radians(${longitude}) - radians(longitude ) ) +
         sin( radians( latitude ) ) * 
         sin( radians(${latitude}) ) ) )  as distance
-        FROM zipcode
+        FROM business
         WHERE 69 * DEGREES(acos( 
         cos( radians(latitude) ) *
         cos( radians(${latitude}) ) * 
@@ -439,14 +454,14 @@ const search = (req, res) => {
         (SELECT zip, 2021_02
         FROM home_values
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget})
-    SELECT b.name, b.city, b.state, b.postal_code AS zip, z.county, b.stars AS 'rating (Out of 5)'
+    SELECT b.name, b.city, b.state, b.postal_code AS zip, z.county, b.stars AS 'rating'
     FROM zipcode z
     LEFT OUTER JOIN budget h ON z.zip = h.zip
     JOIN business b ON b.postal_code = z.zip
     JOIN coordinates c ON b.business_id = c.id
     WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} `
-            + (req.params.attribute === "undefined" ? `` : `AND ${attribute_db} = 'True'`)
-    + (tag_array === [] ? `` : ` AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string} `) +
+            + (req.params.attribute === "undefined" ? `` : `AND ${attribute_db} = 'True' `)
+    + (tag_array === [] ? `` : `AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string}) `) +
     `ORDER BY ${order_key} ${order_direction} LIMIT 50;`
     }
 
@@ -462,7 +477,7 @@ const search = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
+app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd/:tags', search);
 
 
 /********** LOCAL_BUSINESSES ***********/
@@ -482,14 +497,14 @@ const locals = (req, res) => {
 
     let query = `
     WITH coordinates AS
-        (SELECT zip,
+        (SELECT business_id AS id,
         69 * DEGREES(acos( 
         cos( radians(latitude) ) *
         cos( radians(${latitude}) ) * 
         cos( radians(${longitude}) - radians(longitude ) ) +
         sin( radians( latitude ) ) * 
         sin( radians(${latitude}) ) ) )  as distance
-        FROM zipcode
+        FROM business
         WHERE 69 * DEGREES(acos( 
         cos( radians(latitude) ) *
         cos( radians(${latitude}) ) * 
@@ -503,7 +518,6 @@ const locals = (req, res) => {
     ORDER BY distance ASC, b.name ASC
     limit 50;
     `;
-
 
     connection.query(query, function(err, rows, fields) {
         if (err) {
@@ -537,12 +551,23 @@ const restaurants = (req, res) => {
 
     // Defines attribute table name
     // DEFAULT NULL
-    let attribute_tbl = req.params.attribute_tbl;
+    let attribute_tbl = req.params.attribute;
 
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
-    let order_key = req.params.order_key;
+    let order_val = req.params.order_key;
+    let order_key = 'distance';
+    if(order_val === "MedianHomeValue"){
+        order_key = '2021_02';
+    }else if (order_val === 'AverageBusinessRating'){
+        order_key = 'AVG(stars)';
+    }else if (order_val === 'Distance'){
+        order_key = 'distance';
+    }else if (order_val === 'BusinessRating'){
+        order_key = 'stars';
+    }
+
     // DEFAULT ASC
     //let order_direction = req.params.order_direction;
     let order_direction = req.params.order_direction;
@@ -570,8 +595,8 @@ const restaurants = (req, res) => {
         sin( radians(${latitude}) ) ) ) <= ${radius}),
         attribute AS
         (SELECT zipcode, percentile
-        FROM ${attribute_tbl}
-        WHERE percentile >= .7),
+        FROM ` + (req.params.attribute === "undefined" ? `GoodForKids ` : `${attribute} `) + 
+        `WHERE percentile >= .7),
         budget AS
         (SELECT zip, 2021_02
         FROM home_values
@@ -580,7 +605,7 @@ const restaurants = (req, res) => {
         (SELECT postal_code, COUNT(business_id) AS bcount
         FROM business
         GROUP BY postal_code)
-        SELECT z.zip, z.city, z.state, z.county, AVG(stars) AS 'rating', AVG(attributesRestaurantsPriceRange) AS 'Average Price ($ - $$$$)', COUNT(attributesRestaurantsPriceRange) AS '# Restaurants Listed'
+        SELECT z.zip, z.city, z.state, z.county, AVG(stars) AS avgBusinessRating, AVG(attributesRestaurantsPriceRange) AS 'Average Price ($ - $$$$)', COUNT(attributesRestaurantsPriceRange) AS '# Restaurants Listed', 2021_02 AS MedianHomeValue
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
@@ -588,7 +613,7 @@ const restaurants = (req, res) => {
         JOIN business_count bc ON z.zip=bc.postal_code
         JOIN business b ON z.zip=b.postal_code
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
-                + (req.params.attribute_tbl === "undefined" ? `` : ` AND percentile >= .7`)
+                + (req.params.attribute_tbl === "undefined" ? `` : ` AND percentile >= .7 `)
                 + `GROUP BY z.zip
         HAVING AVG(stars) >= ${rating} AND AVG(attributesRestaurantsPriceRange) <= ${r_price} AND COUNT(attributesRestaurantsPriceRange) >= ${r_count}
         ORDER BY ${order_key} ${order_direction}

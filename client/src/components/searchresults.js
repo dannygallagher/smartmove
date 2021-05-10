@@ -22,9 +22,7 @@ export const SearchResultsHeader = ({zipOrBusiness, resultFieldsZip}) => {
                     <div className="results-header"><strong>Zip Code</strong></div> 
                     <div className="results-header"><strong>City</strong></div> 
                     <div className="results-header"><strong>State</strong></div> 
-                    <div className="results-header"><strong>County</strong></div> 
                     <div className="results-header"><strong>Rating</strong></div>
-                    <div className="results-header"><strong>More Details</strong></div> 
                 </>
             }
         </div>
@@ -60,11 +58,8 @@ export const SearchResultsRow = ({ zipOrBusiness, output, setShowDetails, setZip
                     <div className="results">{output.zip}</div> 
                     <div className="results">{output.city}</div> 
                     <div className="results">{output.state}</div> 
-                    <div className="results">{output.county}</div> 
+                    {output.county ? <div className="results">{output.county}</div> : <></>}
                     <div className="results">{output.rating}</div> 
-                    <div className="results" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <button onClick={detailsButtonHandler}>Details</button>
-                    </div>
                 </>
             }
         </div>

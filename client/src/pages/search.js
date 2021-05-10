@@ -158,7 +158,7 @@ export default function Search() {
         console.log({tagString});
 
 
-        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}`,
+        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}/${tagString}`,
         {
             method: 'GET',
         }).then(res => {
@@ -184,7 +184,22 @@ export default function Search() {
     }
 
     const foodQuery = () => {
-
+        fetch(`http://localhost:4000/restaurants/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${restaurantStars}/${restaurantPrice}/${restaurantMin}`,
+        {
+            method: 'GET',
+        }).then(res => {
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(resultsList => {
+            console.log(resultsList);
+            const resultsRows = resultsList.map((output, i) => {
+                return (
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                )
+            })
+            setSearchResults(resultsRows);
+        });
     };
 
     const findLocalBusinesses = () => {
@@ -196,16 +211,14 @@ export default function Search() {
         }).catch((err) => {
             console.log(err)
         }).then(resultsList => {
-            const resultsDivs = resultsList.map((result, i) => 
-                <div className="local-business">
-                    <div className="name">{result.name}</div>
-                    <div className="city">{result.city}</div>
-                    <div className="state">{result.state}</div>
-                    <div className="zip">{result.zip}</div>
-                    <div className="rating">{result.rating}</div>
-                </div>
-            )
-            setLocalBusiness(resultsDivs);
+            console.log(resultsList);
+            const resultsRows = resultsList.map((output, i) => {
+                return (
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                )
+            })
+            
+            setSearchResults(resultsRows);
         });
     };
 
@@ -634,11 +647,12 @@ export default function Search() {
                             </Grid>
                             <Grid item xs>
                                 <Paper className={classes.paper}>
-                                    <div><h3>Foodie Filters</h3></div>
+                                    <div><h2>SmartMove's Signature Searches</h2></div>
+                                    <div><h3>Filters for Foodies (Find Regions Based on Their Food)</h3></div>
 
                                     <TextField
                                     id="restaurant-price"
-                                    label="Minimum Avg Restaurant Price ($)"
+                                    label="Maximum Avg Restaurant Price (1-4: $-$$$$)"
                                     value={restaurantPrice}
                                     onChange={e => restaurantPriceErrorHandler(e)}
                                     margin="dense"
@@ -648,7 +662,7 @@ export default function Search() {
 
                                     <TextField
                                     id="restaurant-stars"
-                                    label="Minimum Avg Restaurant Quality (Stars)"
+                                    label="Minimum Avg Restaurant Quality (1-5 Stars)"
                                     value={restaurantStars}
                                     onChange={e => restaurantStarsErrorHandler(e)}
                                     margin="dense"
@@ -658,7 +672,7 @@ export default function Search() {
 
                                     <TextField
                                     id="restaurant-min"
-                                    label="Minimum Number of Restaurants"
+                                    label="Minimum Number of Restaurants in Area"
                                     value={restaurantMin}
                                     onChange={e => restaurantMinErrorHandler(e)}
                                     margin="dense"
@@ -666,30 +680,18 @@ export default function Search() {
                                     helperText = {restaurantMinError}
                                     />
                                     <div></div>
-                                    <button onClick={foodQuery}>Submit!</button>
+                                    <Button variant="contained" color='secondary' onClick={foodQuery}>Find Some Food!</Button>
 
-                                </Paper>
-                            </Grid>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <Button variant="contained" color='secondary' onClick={findLocalBusinesses}>Find Local Businesses!</Button>
-                            </div>
-                            <Grid item xs>
-                                <Paper className={classes.paper}>
-                                    <div className="local-business-header">
-                                        <div className="header"><strong>Name</strong></div>
-                                        <div className="header"><strong>City</strong></div>
-                                        <div className="header"><strong>State</strong></div>
-                                        <div className="header"><strong>Zipcode</strong></div>
-                                        <div className="header"><strong>Rating</strong></div>
+                                    <div><h3>Find One-of-a-Kind Businesses (requires search-type Business)</h3></div>
+
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                        <Button variant="contained" color='secondary' onClick={findLocalBusinesses}>Let's Go!</Button>
                                     </div>
-                                    <div className="local-result-container">
-                                        {localBusiness}
-                                    </div>
+
                                 </Paper>
                             </Grid>
                         </Grid>
                     </Grid>
-                    
                 </Grid>
                
                 <Grid container spacing={4}>
