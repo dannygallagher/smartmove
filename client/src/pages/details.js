@@ -4,6 +4,8 @@ import '../Styles/details.css';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Image from '../Styles/city_warm.jpg';
+import Button from '@material-ui/core/Button';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
 
 export default function Details({zip, setShowDetails}) {
@@ -29,7 +31,6 @@ export default function Details({zip, setShowDetails}) {
               backgroundColor: "rgba(245,245,245,1)"
 
             },
-
             headings: {
               backgroundColor: "rgba(245,245,245,1)"
             }
@@ -373,13 +374,29 @@ export default function Details({zip, setShowDetails}) {
     return (
         <div className={classes.root}>
           
-          <div className="details-header-container">
+          {/* <div className="details-header-container">
             <div className="details-header">
                 <div className="title"><button className="back-button" onClick={backButtonHandler}>Back</button>
                 <div className="spacer"></div><strong>Zipcode: {zip}</strong></div>
             </div>
-          </div>
+          </div> */}
           <Grid container spacing={3}>
+            <Grid item xs={12}>
+                <Grid item xs={12} className="details-header">
+                    <div className="title"><div><strong>Zipcode: {zip}</strong></div></div>
+                </Grid>
+                <Grid item xs={4} className="back-button">
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        className={classes.button}
+                        startIcon={<ArrowBackIosIcon />}
+                        onClick={backButtonHandler}
+                    >
+                    Back
+                    </Button>
+                </Grid>
+            </Grid>
             <Grid item xs={3}>
               <Grid container direction="column" spacing={3}>
                 <Grid item xs>
