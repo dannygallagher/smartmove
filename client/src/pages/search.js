@@ -59,7 +59,7 @@ export default function Search() {
     // Map view state
     const [viewState, setViewState] = useState(initialViewState);
     // User input variables
-    const [dealBreaker, setDealBreaker] = useState("");
+    const [dealBreaker, setDealBreaker] = useState();
     const [zipOrBusiness, setZipOrBusiness] = useState("zip");
     const [radius, setRadius] = useState(25000);
     const [location, setLocation] = useState();
@@ -85,6 +85,8 @@ export default function Search() {
     const [showResults, setShowResults] = useState(false);
     const [outputZip, setOutputZip] = useState();
     const [outputBusiness, setOutputBusiness] = useState();
+    const [searchResults, setSearchResults] = useState([]);
+    const [localBusiness, setLocalBusiness] = useState();
     // Showing Details page
     const [zip, setZip] = useState();
     const [showDetails, setShowDetails] = useState(false);
@@ -146,7 +148,17 @@ export default function Search() {
 
     // General search query
     const generalSearchQuery = () => {
-        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${tags}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}`,
+
+        let tagString = (tags["Restaurants"] ? "Restaurants-" : "") + (tags["Shopping"] ? "Shopping-" : "") + (tags["Home Services"] ? "HomeServices-" : "") + (tags["Food"] ? "Food-" : "") + (tags["Health & Medical"] ? "Health&Medical-" : "") + (tags["Beauty & Spas"] ? "Beauty&Spas-" : "") + (tags["Local Services"] ? "LocalServices-" : "") + (tags["Automotive"] ? "Automotive-" : "") + (tags["Event Planning & Services"] ? "EventPlanning&Services-" : "") + (tags["Active Life"] ? "ActiveLife-" : "");
+
+        if (tagString !== "") {
+            tagString = tagString.slice(0, -1);
+        }
+
+        console.log({tagString});
+
+
+        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}`,
         {
             method: 'GET',
         }).then(res => {
@@ -155,11 +167,19 @@ export default function Search() {
             console.log(err)
         }).then(resultsList => {
             console.log(resultsList);
-            if (zipOrBusiness === 'zip') {
-                setOutputZip(resultsList);
-            } else {
-                setOutputBusiness(resultsList);
-            }
+            console.log("Reached here!!!")
+
+            const resultsRows = resultsList.map((output, i) => {
+                return (
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                )
+            })
+            
+            setSearchResults(resultsRows);
+            
+            console.log("Search page");
+            console.log(resultsRows);
+            console.log(searchResults);
         });
     }
 
@@ -168,7 +188,25 @@ export default function Search() {
     };
 
     const findLocalBusinesses = () => {
-
+        fetch(`http://localhost:4000/locals/${latitude}/${longitude}/${radius}`,
+        {
+            method: 'GET',
+        }).then(res => {
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(resultsList => {
+            const resultsDivs = resultsList.map((result, i) => 
+                <div className="local-business">
+                    <div className="name">{result.name}</div>
+                    <div className="city">{result.city}</div>
+                    <div className="state">{result.state}</div>
+                    <div className="zip">{result.zip}</div>
+                    <div className="rating">{result.rating}</div>
+                </div>
+            )
+            setLocalBusiness(resultsDivs);
+        });
     };
 
     const zipOrBusinessHandler = (e) => {
@@ -635,6 +673,20 @@ export default function Search() {
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <Button variant="contained" color='secondary' onClick={findLocalBusinesses}>Find Local Businesses!</Button>
                             </div>
+                            <Grid item xs>
+                                <Paper className={classes.paper}>
+                                    <div className="local-business-header">
+                                        <div className="header"><strong>Name</strong></div>
+                                        <div className="header"><strong>City</strong></div>
+                                        <div className="header"><strong>State</strong></div>
+                                        <div className="header"><strong>Zipcode</strong></div>
+                                        <div className="header"><strong>Rating</strong></div>
+                                    </div>
+                                    <div className="local-result-container">
+                                        {localBusiness}
+                                    </div>
+                                </Paper>
+                            </Grid>
                         </Grid>
                     </Grid>
                     
@@ -646,12 +698,7 @@ export default function Search() {
                             <div><h2>Results</h2></div>
                             <SearchResultsHeader zipOrBusiness={zipOrBusiness} resultFieldsZip={resultFieldsZip} />
                             <div>
-                                {showResults && zipOrBusiness === "zip" && outputZip.map((output) => (
-                                    <SearchResultsRow zipOrBusiness={zipOrBusiness} resultFieldsZip={resultFieldsZip} output={output} setShowDetails={setShowDetails} zip={zip} setZip={setZip} />
-                                ))}
-                                {showResults && zipOrBusiness === "business" && outputBusiness.map((output) => (
-                                    <SearchResultsRow zipOrBusiness={zipOrBusiness} resultFieldsZip={resultFieldsZip} output={output} />
-                                ))}
+                                {searchResults}
                             </div>
                         </Paper>
                     </Grid>
