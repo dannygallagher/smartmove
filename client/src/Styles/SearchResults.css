@@ -1,0 +1,23 @@
+.results-header-container {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+  }
+
+.results-header {
+    font-size: 1.2em; 
+    flex: 1 0 10%;
+}
+
+.results-container {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+  }
+
+.results {
+    font-size: 1.2em; 
+    flex: 1 0 10%;
+}
