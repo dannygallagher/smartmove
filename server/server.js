@@ -270,11 +270,43 @@ const search = (req, res) => {
     // DEFAULT NULL
     //let attribute = req.params.attribute;
     let attribute = req.params.attribute;
-    let attribute_tbl = req.params.attribute_tbl;
+
+    let attribute_db = '';
+    if(attribute === 'GoodForKids'){
+        attribute_db = 'attributesGoodForKids'
+    }else if(attribute === 'GoodForDancing'){
+        attribute_db = 'attributesGoodForDancing'
+    }else if(attribute === 'DogsAllowed'){
+        attribute_db = 'attributesDogsAllowed'
+    }else if(attribute === 'WheelchairAccessible'){
+        attribute_db = 'attributesWheelchairAccessible'
+    }else if(attribute === 'GoodForBikers'){
+        attribute_db = 'attributesBikeParking'
+    }else if(attribute === 'RestaurantDelivery'){
+        attribute_db = 'attributesRestaurantsDelivery'
+    }
+
 
     // DEFAULT NULL
-    let tags = req.params.tag;
+    let tags = req.params.tags;
 
+
+    let tag_string = '(';
+    let tag_array = [];
+
+    Object.entries(tags).forEach((entry) => {
+        const [key, val] = entry;
+        if(val === true){
+            tag_array.push(key);
+        }
+
+    })
+    for (var i in tag_array) {
+        if(i<tag_array.length-1){
+            tag_string = tag_string + "'" + tag_array[i] + "'" +  ', ';
+        }else{tag_string = tag_string + "'" + tag_array[i] + "'" + ')';
+        }
+    }
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
@@ -313,7 +345,7 @@ const search = (req, res) => {
         sin( radians(${latitude}) ) ) ) <= ${radius}),
         attribute AS
         (SELECT zipcode, percentile
-        FROM ${attribute_tbl}
+        FROM ${attribute}
         WHERE percentile >= .7),
         budget AS
         (SELECT zip, 2021_02
@@ -358,7 +390,7 @@ const search = (req, res) => {
         sin( radians(${latitude}) ) ) ) <= ${radius}),
         attribute AS
         (SELECT zipcode, percentile
-        FROM ${attribute_tbl}
+        FROM ${attribute}
         WHERE percentile >= .7),
         budget AS
         (SELECT zip, 2021_02
@@ -401,9 +433,10 @@ const search = (req, res) => {
     LEFT OUTER JOIN budget h ON z.zip = h.zip
     JOIN business b ON b.postal_code = z.zip
     JOIN coordinates c ON b.business_id = c.id
-    WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} AND ${attribute} = 'True'
-    AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories = ${tags})
-    ORDER BY ${order_key} ${order_direction}
+    WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
+            + (req.params.attribute === "undefined" ? `` : `AND ${attribute_db} = 'True'`)
+    + (tag_array === [] ? `` : ` AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string})`) +
+    `ORDER BY ${order_key} ${order_direction}
     LIMIT 50;
         `
     }
@@ -419,7 +452,7 @@ const search = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:attribute_tbl/:tag/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
+app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:tag/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
 
 
 /********** LOCAL_BUSINESSES ***********/
@@ -564,7 +597,7 @@ const restaurants = (req, res) => {
     })
 }
 
-app.get('/restaurants/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute_tbl/:order_key/:order_direction/:rating/:r_price/:r_count', restaurants);
+app.get('/restaurants/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:order_key/:order_direction/:rating/:r_price/:r_count', restaurants);
 
 
 
