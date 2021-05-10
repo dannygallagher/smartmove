@@ -77,12 +77,14 @@ export default function Search() {
     const [restaurantPriceError, setRestaurantPriceError] = useState("");
     const [restaurantStarsError, setRestaurantStarsError] = useState("");
     const [restaurantMinError, setRestaurantMinError] = useState("");
+    const [orderKey, setOrderKey] = useState("MedianHomeValue");
+    const [orderDirection, setOrderDirection] = useState("ASC");
     // Result fields (headers)
     const [resultFieldsZip, setResultFieldsZip] = useState(initialResultFieldsZip);
     // Output
     const [showResults, setShowResults] = useState(false);
-    const [outputZip, setOutputZip] = useState([]);
-    const [outputBusiness, setOutputBusiness] = useState([]);
+    const [outputZip, setOutputZip] = useState();
+    const [outputBusiness, setOutputBusiness] = useState();
     // Showing Details page
     const [zip, setZip] = useState();
     const [showDetails, setShowDetails] = useState(false);
@@ -94,10 +96,9 @@ export default function Search() {
         state: 'AZ',
         county: 'Random',
         medianHouseValue: 1000,
-        medianRentalIndex: 1000,
         attributeRanking: 3,
         avgBusinessRating: 5,
-        totalPopulation: 1000
+        distance: 100
     }
     let sampleBusinessOutput = {
         name: 'McDonalds',
@@ -105,22 +106,9 @@ export default function Search() {
         city: 'Phoenix',
         state: 'AZ',
         county: 'Random',
-        rating: 5
+        rating: 5,
+        distance: 100
     }
-
-
-
-    // REMOVE EVENTUALLY
-    const loadSampleOutput = () => {
-        
-        setOutputZip([...outputZip, sampleZipOutput]);
-        setOutputBusiness([...outputBusiness, sampleBusinessOutput]);
-
-        console.log(outputZip);
-        console.log(outputBusiness);
-        setShowResults(true);
-    }
-
 
     // Function for obtaining latitude and longitude when user clicks on a point on the map
     const mapClickHandler = (info) => {
@@ -155,6 +143,26 @@ export default function Search() {
             setErrorMessage("");
         });
     }
+
+    // General search query
+    const generalSearchQuery = () => {
+        fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${tags}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}`,
+        {
+            method: 'GET',
+        }).then(res => {
+            return res.json();
+        }).catch((err) => {
+            console.log(err)
+        }).then(resultsList => {
+            console.log(resultsList);
+            if (zipOrBusiness === 'zip') {
+                setOutputZip(resultsList);
+            } else {
+                setOutputBusiness(resultsList);
+            }
+        });
+    }
+
 
     const foodQuery = () => {
 
@@ -291,6 +299,17 @@ export default function Search() {
                                     />
 
                                     <div></div>
+
+                                    <TextField
+                                    id="radius"
+                                    required
+                                    label="Radius"
+                                    value={radius}
+                                    onChange={e => setRadius(e.target.value)}
+                                    margin="dense"
+                                    />
+
+                                    <div></div>
                                 </Paper>
                             </Grid>
                             <Grid item >
@@ -348,13 +367,15 @@ export default function Search() {
                                     />   
 
                                 </Paper>
-                                
+                                &nbsp;
+                                <Grid>
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                        <Button variant="contained" color='secondary' onClick={generalSearchQuery}>
+                                            SEARCH!
+                                        </Button>
+                                    </div>
+                                </Grid>
                             </Grid>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <Button variant="contained" color='secondary' onClick={loadSampleOutput}>
-                                    GET RECOMMENDED LOCATIONS
-                                </Button>
-                            </div>
                         </Grid>
                     </Grid>
                     
@@ -363,16 +384,6 @@ export default function Search() {
                             <Grid item xs>
                             <Paper className={classes.paper}>
                                     <div><h3>Filters</h3></div>
-                                    <TextField
-                                    id="radius"
-                                    required
-                                    label="Radius"
-                                    value={radius}
-                                    onChange={e => setRadius(e.target.value)}
-                                    margin="dense"
-                                    />
-
-                                    <div></div>
                                     
                                     <TextField
                                     id="min-budget"
@@ -408,7 +419,7 @@ export default function Search() {
                                     </FormControl>
 
                                     <FormControl className={classes.formControl}>
-                                        <InputLabel id="deal-breaker">Deal Breaker</InputLabel>
+                                        <InputLabel id="deal-breaker">Must-Have</InputLabel>
                                         <Select
                                         labelId="deal-breaker-label"
                                         id="deal-breaker"
@@ -424,7 +435,44 @@ export default function Search() {
                                         </Select>
                                     </FormControl>
 
+                                    {zipOrBusiness === 'zip' && <FormControl className={classes.formControl}>
+                                        <InputLabel id="order-key-dropdown">Order By...</InputLabel>
+                                        <Select
+                                        labelId="order-key-label"
+                                        id="order-key"
+                                        value={orderKey}
+                                        onChange={(e) => {setOrderKey(e.target.value)}}
+                                        >
+                                            <MenuItem value="MedianHomeValue">Median Home Value</MenuItem>
+                                            <MenuItem value="AverageBusinessRating">Average Business Rating</MenuItem>
+                                            <MenuItem value="Distance">Distance</MenuItem>
+                                        </Select>
+                                    </FormControl>}
+                                    {zipOrBusiness === 'business' && <FormControl className={classes.formControl}>
+                                        <InputLabel id="order-key-dropdown">Order By...</InputLabel>
+                                        <Select
+                                        labelId="order-key-label"
+                                        id="order-key"
+                                        value={orderKey}
+                                        onChange={(e) => {setOrderKey(e.target.value)}}
+                                        >
+                                            <MenuItem value="BusinessRating">Business Rating</MenuItem>
+                                            <MenuItem value="Distance">Distance</MenuItem>
+                                        </Select>
+                                    </FormControl>}
 
+                                    <FormControl className={classes.formControl}>
+                                        <InputLabel id="order-direction-dropdown">Order Direction</InputLabel>
+                                        <Select
+                                        labelId="order-direction-label"
+                                        id="order-direction"
+                                        value={orderDirection}
+                                        onChange={(e) => {setOrderDirection(e.target.value)}}
+                                        >
+                                            <MenuItem value="ASC">Ascending</MenuItem>
+                                            <MenuItem value="DESC">Descending</MenuItem>
+                                        </Select>
+                                    </FormControl>
 
                                 </Paper>
                             </Grid>
@@ -593,7 +641,7 @@ export default function Search() {
                     
                 </Grid>
                
-                <Grid container spacing={1}>
+                <Grid container spacing={4}>
                     <Grid item xs>
                         <Paper className={classes.paper}>
                             <div><h2>Results</h2></div>
