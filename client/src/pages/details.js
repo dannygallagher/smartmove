@@ -365,7 +365,7 @@ export default function Details() {
           </div>
           <Grid container spacing={3}>
             <Grid item xs={3}>
-              <Grid container direction="column" spacing={2}>
+              <Grid container direction="column" spacing={3}>
                 <Grid item xs>
                   <Paper className={classes.paper}>
                     <div className={classes.chart}>
