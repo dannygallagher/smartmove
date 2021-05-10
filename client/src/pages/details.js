@@ -291,26 +291,34 @@ export default function Details({zip}) {
             console.log(err)
         }).then(resultsList => {
             var row = resultsList[0];
-            setHomeLineData({
-              labels: Object.keys(row),
-              datasets: [
-                  {   
-                      label: 'Average Home Value in US Dollars in Last 6 Months',
-                      data: [
-                        row.September, 
-                        row.October,
-                        row.November,
-                        row.December,
-                        row.January,
-                        row.February
-                      ],
-                      backgroundColor: 'rgba(75,192,192, 0.2)',
-                      borderColor: 'rgba(75,192,192,1)',
-                      fill: true,
-                      hoverOffset: 4
-                  }
-              ]
-            });
+            if (row == null) {
+              setHomeLineData({
+                label: "No data to show",
+                data: []
+              })
+            } else {
+                setHomeLineData({
+                labels: Object.keys(row),
+                datasets: [
+                    {   
+                        label: 'Average Home Value in US Dollars in Last 6 Months',
+                        data: [
+                          row.September, 
+                          row.October,
+                          row.November,
+                          row.December,
+                          row.January,
+                          row.February
+                        ],
+                        backgroundColor: 'rgba(75,192,192, 0.2)',
+                        borderColor: 'rgba(75,192,192,1)',
+                        fill: true,
+                        hoverOffset: 4
+                    }
+                ]
+              });
+            }
+            
         });
     };
 
@@ -328,26 +336,33 @@ export default function Details({zip}) {
           console.log(err)
       }).then(resultsList => {
           var row = resultsList[0];
-          setRentLineData({
-            labels: Object.keys(row),
-              datasets: [
-                  {   
-                      label: 'Average Rent Price in US Dollars in Last 6 Months',
-                      data: [
-                        row.September, 
-                        row.October,
-                        row.November,
-                        row.December,
-                        row.January,
-                        row.February
-                      ],
-                      backgroundColor: 'rgba(116,39,116, 0.2)',
-                      borderColor: 'rgba(116,39,116, 1)',
-                      fill: true,
-                      hoverOffset: 4
-                  }
-              ]
-          });
+          if (row == null) {
+            setRentLineData({
+              label: "No data to show",
+              data: []
+            })
+          } else {
+            setRentLineData({
+              labels: Object.keys(row),
+                datasets: [
+                    {   
+                        label: 'Average Rent Price in US Dollars in Last 6 Months',
+                        data: [
+                          row.September, 
+                          row.October,
+                          row.November,
+                          row.December,
+                          row.January,
+                          row.February
+                        ],
+                        backgroundColor: 'rgba(116,39,116, 0.2)',
+                        borderColor: 'rgba(116,39,116, 1)',
+                        fill: true,
+                        hoverOffset: 4
+                    }
+                ]
+            });
+          }
       });
   };
 
