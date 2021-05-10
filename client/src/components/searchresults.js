@@ -11,11 +11,8 @@ export const SearchResultsHeader = ({zipOrBusiness, resultFieldsZip}) => {
                     <div className="results-header"><strong>City</strong></div> 
                     <div className="results-header"><strong>State</strong></div> 
                     <div className="results-header"><strong>County</strong></div> 
-                    { resultFieldsZip.medianHouseValue && <div className="results-header"><strong>Median House Value</strong></div>}
-                    { resultFieldsZip.medianRentalIndex && <div className="results-header"><strong>Median Rental Index</strong></div>}
-                    { resultFieldsZip.attributeRanking && <div className="results-header"><strong>Attribute Ranking</strong></div>}
-                    { resultFieldsZip.avgBusinessRating && <div className="results-header"><strong>Avg Business Rating</strong></div>}
-                    { resultFieldsZip.totalPopulation && <div className="results-header"><strong>Total Population</strong></div>}
+                    <div className="results-header"><strong>Median House Value</strong></div>
+                    <div className="results-header"><strong>Avg Business Rating</strong></div>
                     <div className="results-header"><strong>More Details</strong></div>
                 </>
             }
@@ -26,7 +23,8 @@ export const SearchResultsHeader = ({zipOrBusiness, resultFieldsZip}) => {
                     <div className="results-header"><strong>City</strong></div> 
                     <div className="results-header"><strong>State</strong></div> 
                     <div className="results-header"><strong>County</strong></div> 
-                    <div className="results-header"><strong>Rating</strong></div> 
+                    <div className="results-header"><strong>Rating</strong></div>
+                    <div className="results-header"><strong>More Details</strong></div> 
                 </>
             }
         </div>
@@ -34,7 +32,7 @@ export const SearchResultsHeader = ({zipOrBusiness, resultFieldsZip}) => {
 }
 
 
-export const SearchResultsRow = ({ zipOrBusiness, resultFieldsZip, output, setShowDetails, setZip }) => {
+export const SearchResultsRow = ({ zipOrBusiness, output, setShowDetails, setZip }) => {
 
     const detailsButtonHandler = () => {
         setZip(output.zip);
@@ -49,11 +47,8 @@ export const SearchResultsRow = ({ zipOrBusiness, resultFieldsZip, output, setSh
                     <div className="results">{output.city}</div> 
                     <div className="results">{output.state}</div> 
                     <div className="results">{output.county}</div> 
-                    {resultFieldsZip.medianHouseValue && <div className="results">{output.medianHouseValue}</div>}
-                    {resultFieldsZip.medianRentalIndex && <div className="results">{output.medianRentalIndex}</div>}
-                    {resultFieldsZip.attributeRanking && <div className="results">{output.attributeRanking}</div>}
-                    {resultFieldsZip.avgBusinessRating && <div className="results">{output.avgBusinessRating}</div>}
-                    {resultFieldsZip.totalPopulation && <div className="results">{output.totalPopulation}</div>}
+                    <div className="results">{output.MedianHomeValue}</div>
+                    <div className="results">{output.avgBusinessRating}</div>
                     <div className="results" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <button onClick={detailsButtonHandler}>Details</button>
                     </div>
@@ -67,6 +62,9 @@ export const SearchResultsRow = ({ zipOrBusiness, resultFieldsZip, output, setSh
                     <div className="results">{output.state}</div> 
                     <div className="results">{output.county}</div> 
                     <div className="results">{output.rating}</div> 
+                    <div className="results" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <button onClick={detailsButtonHandler}>Details</button>
+                    </div>
                 </>
             }
         </div>

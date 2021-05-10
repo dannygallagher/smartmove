@@ -203,7 +203,7 @@ app.post('/temptabledrop', (req, res) => {
         DROP TABLE WheelchairAccessible;
         DROP TABLE DogsAllowed;
         DROP TABLE GoodForBikers;
-        DROP TABLE RestaurantsDelivery
+        DROP TABLE RestaurantDelivery;
     `;
 
     connection.query(query, function(err, rows, fields) {
@@ -251,7 +251,7 @@ const search = (req, res) => {
 
     // Says if we are looking for businesses or zipcodes
     //DEFAULTS TO ZIPCODE
-    let bus_or_zip = 'zipcode';
+    let bus_or_zip = req.params.bus_or_zip;
 
     //DEFAULTS SET TO PHOENIX COORDINATES, TO GUIDE USERS INITIALLY TOWARD AREA WHERE WE HAVE MOST BUSINESS INFO
     //DEFAULT 33.44
@@ -288,29 +288,40 @@ const search = (req, res) => {
 
 
     // DEFAULT NULL
-    let tags = req.params.tags;
+    // let tags = req.params.tags;
 
+    // let tag_array = tags.split("-");
 
-    let tag_string = '(';
-    let tag_array = [];
+    // console.log({tag_array});
 
-    Object.entries(tags).forEach((entry) => {
-        const [key, val] = entry;
-        if(val === true){
-            tag_array.push(key);
-        }
+    // let tag_string = '(';
 
-    })
-    for (var i in tag_array) {
-        if(i<tag_array.length-1){
-            tag_string = tag_string + "'" + tag_array[i] + "'" +  ', ';
-        }else{tag_string = tag_string + "'" + tag_array[i] + "'" + ')';
-        }
-    }
+    // for (var i in tag_array) {
+        
+
+    //     if(i<tag_array.length-1){
+    //         tag_string = tag_string + "'" + tag_array[i] + "'" +  ', ';
+    //     }else{tag_string = tag_string + "'" + tag_array[i] + "'" + ')';
+    //     }
+    // }
+
+    // console.log({tag_string});
+
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
-    let order_key = req.params.order_key;
+    let order_val = req.params.order_key;
+    let order_key = 'distance';
+    if(order_val === "MedianHomeValue"){
+        order_key = '2021_02';
+    }else if (order_val === 'AverageBusinessRating'){
+        order_key = 'AVG(stars)';
+    }else if (order_val === 'Distance'){
+        order_key = 'distance';
+    }else if (order_val === 'BusinessRating'){
+        order_key = 'stars';
+    }
+
     // DEFAULT ASC
     //let order_direction = req.params.order_direction;
     let order_direction = req.params.order_direction;
@@ -345,8 +356,8 @@ const search = (req, res) => {
         sin( radians(${latitude}) ) ) ) <= ${radius}),
         attribute AS
         (SELECT zipcode, percentile
-        FROM ${attribute}
-        WHERE percentile >= .7),
+        FROM ` + (req.params.attribute === "undefined" ? `GoodForKids ` : `${attribute} `) + 
+        `WHERE percentile >= .7),
         budget AS
         (SELECT zip, 2021_02
         FROM home_values
@@ -359,19 +370,19 @@ const search = (req, res) => {
             JOIN DogsAllowed a4 ON a1.zipcode = a4.zipcode
             JOIN GoodForBikers a5 ON a1.zipcode = a5.zipcode
             JOIN RestaurantDelivery a6 ON a1.zipcode = a6.zipcode)
-        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS Median_Home_Value, AVG(star) AS avgBusinessRating, cs.comScore AS 'Compatibility Score'
+        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS MedianHomeValue, AVG(stars) AS avgBusinessRating, cs.comScore AS 'Compatibility Score'
         FROM zipcode z
         JOIN c_scores cs ON z.zip = cs.zip
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
         LEFT OUTER JOIN budget h ON z.zip = h.zip 
         LEFT OUTER JOIN business b ON z.zip=b.postal_code
-        WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
+        WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} `
             + (req.params.attribute === "undefined" ? `` : ` AND percentile >= .7`)
             + `GROUP BY z.zip
         ORDER BY comScore DESC
         LIMIT 50;`
-    }else if (bus_or_zip === 'zipcode') {
+    } else if (bus_or_zip === 'zip') {
         query = `
         WITH coordinates AS
         (SELECT zip,
@@ -390,13 +401,13 @@ const search = (req, res) => {
         sin( radians(${latitude}) ) ) ) <= ${radius}),
         attribute AS
         (SELECT zipcode, percentile
-        FROM ${attribute}
-        WHERE percentile >= .7),
+        FROM ` + (req.params.attribute === "undefined" ? `GoodForKids ` : `${attribute} `) + 
+        `WHERE percentile >= .7),
         budget AS
         (SELECT zip, 2021_02
         FROM home_values
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget})
-        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS Median_Home_Value, AVG(star) AS avgBusinessRating
+        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS MedianHomeValue, AVG(stars) AS avgBusinessRating
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
@@ -404,7 +415,7 @@ const search = (req, res) => {
         LEFT OUTER JOIN business b ON z.zip=b.postal_code
         WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
                 + (req.params.attribute === "undefined" ? `` : ` AND percentile >= .7`)
-                + `GROUP BY z.zip
+                + ` GROUP BY z.zip
         ORDER BY ${order_key} ${order_direction}
         LIMIT 50;`
     } else {
@@ -433,16 +444,15 @@ const search = (req, res) => {
     LEFT OUTER JOIN budget h ON z.zip = h.zip
     JOIN business b ON b.postal_code = z.zip
     JOIN coordinates c ON b.business_id = c.id
-    WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget}`
+    WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} `
             + (req.params.attribute === "undefined" ? `` : `AND ${attribute_db} = 'True'`)
-    + (tag_array === [] ? `` : ` AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string})`) +
-    `ORDER BY ${order_key} ${order_direction}
-    LIMIT 50;
-        `
+    + (tag_array === [] ? `` : ` AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string} `) +
+    `ORDER BY ${order_key} ${order_direction} LIMIT 50;`
     }
 
     connection.query(query, function(err, rows, fields) {
         if (err) {
+            console.log("Woops");
             console.log(err);
         } else {
             console.log('Success!');
@@ -452,7 +462,7 @@ const search = (req, res) => {
     })
 }
 
-app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:tag/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
+app.get('/search/:latitude/:longitude/:radius/:minBudget/:maxBudget/:bus_or_zip/:attribute/:order_key/:order_direction/:gfk/:gfd/:wa/:da/:gfb/:rd', search);
 
 
 /********** LOCAL_BUSINESSES ***********/

@@ -1,0 +1,19 @@
+.local-business-header, .local-result-container .local-business {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: 40px;
+  }
+  
+  .local-business .name {
+    flex: 1 0 50%;
+  }
+  
+  .local-business-header .header, 
+  .local-business .name, 
+  .local-business .city, 
+  .local-business .state, 
+  .local-business .zip, 
+  .local-business .rating {
+    flex: 1 0 25%;
+  }
