@@ -440,7 +440,7 @@ export default function Details({zip, setShowDetails}) {
                 </Grid>
               </Grid>
             </Grid>
-            <Grid item xs>
+            <Grid item xs={4}>
               <Paper className={classes.headings}>
                 <div className="restaurants-header">
                   <div className="header-lg"><strong>Top 15 Local Restaurant</strong></div>
