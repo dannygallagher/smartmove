@@ -289,39 +289,39 @@ const search = (req, res) => {
 
     // DEFAULT NULL
     let tags = req.params.tags;
-
-    let tag_array = tags.split("-");
-
-    console.log({tag_array});
-
+    let tag_array = [];
     let tag_string = '(';
 
-    for (var i = 0; i < tag_array.length; i++) {
-        let temp = tag_array[i];
-        console.log({temp});
-        if (temp === "HomeServices") {
-            temp = "Home Services";
-        } else if (temp === "Health&Medical") {
-            temp = "Heath & Medical";
-        } else if (temp === "Beauty&Spas") {
-            temp = "Beauty & Spas";
-        } else if (temp === "LocalServices") {
-            temp = "Local Services";
-        } else if (temp === "EventPlanning&Services") {
-            temp = "Event Planning & Services";
-        } else if (temp === "ActiveLife") { 
-            temp = "Active Life";
-        }
-        
-        if (i < tag_array.length - 1) {
-            tag_string = tag_string + "'" + temp + "'" +  ', ';
-        } else {
-            tag_string = tag_string + "'" + temp + "'" + ')';
+    if (tags !== "a-b-c") {
+        tag_array = tags.split("-");
+        console.log({tag_array});
+
+        for (var i = 0; i < tag_array.length; i++) {
+            let temp = tag_array[i];
+            console.log({temp});
+            if (temp === "HomeServices") {
+                temp = "Home Services";
+            } else if (temp === "Health&Medical") {
+                temp = "Heath & Medical";
+            } else if (temp === "Beauty&Spas") {
+                temp = "Beauty & Spas";
+            } else if (temp === "LocalServices") {
+                temp = "Local Services";
+            } else if (temp === "EventPlanning&Services") {
+                temp = "Event Planning & Services";
+            } else if (temp === "ActiveLife") { 
+                temp = "Active Life";
+            }
+            
+            if (i < tag_array.length - 1) {
+                tag_string = tag_string + "'" + temp + "'" +  ', ';
+            } else {
+                tag_string = tag_string + "'" + temp + "'" + ')';
+            }
         }
     }
-
-    console.log({tag_string});
-
+    
+    console.log({tag_string})
 
     // DEFAULT DISTANCE
     //let order_key = req.params.order_key;
@@ -347,8 +347,6 @@ const search = (req, res) => {
     let wa = req.params.wa;
     let gfb = req.params.gfb;
     let rd = req.params.rd;
-
-
 
     let query = '';
 
@@ -385,7 +383,7 @@ const search = (req, res) => {
             JOIN DogsAllowed a4 ON a1.zipcode = a4.zipcode
             JOIN GoodForBikers a5 ON a1.zipcode = a5.zipcode
             JOIN RestaurantDelivery a6 ON a1.zipcode = a6.zipcode)
-        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS MedianHomeValue, AVG(stars) AS avgBusinessRating, cs.comScore AS 'Compatibility Score'
+        SELECT z.zip, z.city, z.state, z.county, 2021_02 AS MedianHomeValue, AVG(stars) AS avgBusinessRating, cs.comScore AS 'CompatibilityScore'
         FROM zipcode z
         JOIN c_scores cs ON z.zip = cs.zip
         JOIN coordinates c ON c.zip = z.zip 
@@ -461,16 +459,14 @@ const search = (req, res) => {
     JOIN coordinates c ON b.business_id = c.id
     WHERE 2021_02 BETWEEN ${minBudget} AND ${maxBudget} `
             + (req.params.attribute === "undefined" ? `` : `AND ${attribute_db} = 'True' `)
-    + (tag_array === [] ? `` : `AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string}) `) +
+    + (tag_string === '(' ? `` : `AND EXISTS (SELECT * FROM business_categories WHERE business_id = b.business_id AND categories IN ${tag_string}) `) +
     `ORDER BY ${order_key} ${order_direction} LIMIT 50;`
     }
 
     connection.query(query, function(err, rows, fields) {
         if (err) {
-            console.log("Woops");
             console.log(err);
         } else {
-            console.log('Success!');
             console.log(rows);
             res.json(rows);
         }
@@ -605,7 +601,7 @@ const restaurants = (req, res) => {
         (SELECT postal_code, COUNT(business_id) AS bcount
         FROM business
         GROUP BY postal_code)
-        SELECT z.zip, z.city, z.state, z.county, AVG(stars) AS avgBusinessRating, AVG(attributesRestaurantsPriceRange) AS 'Average Price ($ - $$$$)', COUNT(attributesRestaurantsPriceRange) AS '# Restaurants Listed', 2021_02 AS MedianHomeValue
+        SELECT z.zip, z.city, z.state, z.county, AVG(stars) AS avgBusinessRating, AVG(attributesRestaurantsPriceRange) AS 'AveragePrice', COUNT(attributesRestaurantsPriceRange) AS 'NumRestaurantsListed', 2021_02 AS MedianHomeValue
         FROM zipcode z
         JOIN coordinates c ON c.zip = z.zip 
         LEFT OUTER JOIN attribute a ON z.zip= a.zipcode
