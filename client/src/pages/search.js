@@ -17,15 +17,6 @@ export default function Search() {
         bearing: 0
     };
 
-    // Initial optional result field selection for zip search
-    const initialResultFieldsZip = {
-        medianHouseValue: false,
-        medianRentalIndex: false,
-        attributeRanking: true,
-        avgBusinessRating: true,
-        totalPopulation: true,
-    } 
-
     // Attributes initial state
     const initialAttributesState = {
         GoodForKids: 0,
@@ -56,11 +47,12 @@ export default function Search() {
 
     
     // HOOKS
+
     // Map view state
     const [viewState, setViewState] = useState(initialViewState);
+
     // User input variables
     const [dealBreaker, setDealBreaker] = useState();
-    const [zipOrBusiness, setZipOrBusiness] = useState("zip");
     const [radius, setRadius] = useState(25000);
     const [location, setLocation] = useState();
     const [locationType, setLocationType] = useState("zip");
@@ -68,7 +60,6 @@ export default function Search() {
     const [latitude, setLatitude] = useState(33.44);
     const [minBudget, setMinBudget] = useState(0);
     const [maxBudget, setMaxBudget] = useState(999999999);
-    const [errorMessage, setErrorMessage] = useState("");
     const [attributes, setAttributes] = useState(initialAttributesState);
     const [tags, setTags] = useState(initialTagsState);
     const [restaurantPrice, setRestaurantPrice] = useState(1);
@@ -79,38 +70,24 @@ export default function Search() {
     const [restaurantMinError, setRestaurantMinError] = useState("");
     const [orderKey, setOrderKey] = useState("MedianHomeValue");
     const [orderDirection, setOrderDirection] = useState("ASC");
-    // Result fields (headers)
-    const [resultFieldsZip, setResultFieldsZip] = useState(initialResultFieldsZip);
+
+    // Search types
+    const [zipOrBusiness, setZipOrBusiness] = useState("zip"); 
+    const [specialSearch, setSpecialSearch] = useState(false);
+    const [compatibilitySearch, setCompatibilitySearch] = useState(false);
+
+    // Error handling
+    const [errorMessage, setErrorMessage] = useState(""); 
+    const [errorMessageFoodieFilters, setErrorMessageFoodieFilters] = useState("");
+    const [errorMessageLocalBusinesses, setErrorMessageLocalBusinesses] = useState("");
+    const [errorMessageCompatibility, setErrorMessageCompatibility] = useState("");
+
     // Output
-    const [showResults, setShowResults] = useState(false);
-    const [outputZip, setOutputZip] = useState();
-    const [outputBusiness, setOutputBusiness] = useState();
     const [searchResults, setSearchResults] = useState([]);
-    const [localBusiness, setLocalBusiness] = useState();
+
     // Showing Details page
     const [zip, setZip] = useState();
     const [showDetails, setShowDetails] = useState(false);
-
-    //SAMPLE OUTPUT
-    let sampleZipOutput = {
-        zip: '08302',
-        city: 'Phoenix',
-        state: 'AZ',
-        county: 'Random',
-        medianHouseValue: 1000,
-        attributeRanking: 3,
-        avgBusinessRating: 5,
-        distance: 100
-    }
-    let sampleBusinessOutput = {
-        name: 'McDonalds',
-        zip: '08302',
-        city: 'Phoenix',
-        state: 'AZ',
-        county: 'Random',
-        rating: 5,
-        distance: 100
-    }
 
     // Function for obtaining latitude and longitude when user clicks on a point on the map
     const mapClickHandler = (info) => {
@@ -149,14 +126,28 @@ export default function Search() {
     // General search query
     const generalSearchQuery = () => {
 
-        let tagString = (tags["Restaurants"] ? "Restaurants-" : "") + (tags["Shopping"] ? "Shopping-" : "") + (tags["Home Services"] ? "HomeServices-" : "") + (tags["Food"] ? "Food-" : "") + (tags["Health & Medical"] ? "Health&Medical-" : "") + (tags["Beauty & Spas"] ? "Beauty&Spas-" : "") + (tags["Local Services"] ? "LocalServices-" : "") + (tags["Automotive"] ? "Automotive-" : "") + (tags["Event Planning & Services"] ? "EventPlanning&Services-" : "") + (tags["Active Life"] ? "ActiveLife-" : "");
+        setErrorMessageLocalBusinesses("");
+        setErrorMessageFoodieFilters("");
 
-        if (tagString !== "") {
-            tagString = tagString.slice(0, -1);
+        if (attributes.GoodForKids > 0 || attributes.GoodForDancing > 0 || attributes.DogsAllowed > 0 || attributes.WheelchairAccessible > 0 || attributes.GoodForBikers > 0 || attributes.RestaurantDelivery > 0) {
+            if (zipOrBusiness === 'business') {
+                setErrorMessageCompatibility('Please set "Search Type" to "Zip Code" or set all preferences to 0!');
+                return;
+            }
+            setErrorMessageCompatibility("");
+        } else {
+            setErrorMessageCompatibility("");
         }
 
-        console.log({tagString});
+        let tagString = "a-b-c";
 
+        let tagStringTemp = (tags["Restaurants"] ? "Restaurants-" : "") + (tags["Shopping"] ? "Shopping-" : "") + (tags["Home Services"] ? "HomeServices-" : "") + (tags["Food"] ? "Food-" : "") + (tags["Health & Medical"] ? "Health&Medical-" : "") + (tags["Beauty & Spas"] ? "Beauty&Spas-" : "") + (tags["Local Services"] ? "LocalServices-" : "") + (tags["Automotive"] ? "Automotive-" : "") + (tags["Event Planning & Services"] ? "EventPlanning&Services-" : "") + (tags["Active Life"] ? "ActiveLife-" : "");
+            
+        if (tagStringTemp !== "") {
+            tagString = tagStringTemp.slice(0, -1);
+        }
+
+        console.log({zipOrBusiness, specialSearch, compatibilitySearch});
 
         fetch(`http://localhost:4000/search/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${attributes.GoodForKids}/${attributes.GoodForDancing}/${attributes.WheelchairAccessible}/${attributes.DogsAllowed}/${attributes.GoodForBikers}/${attributes.RestaurantDelivery}/${tagString}`,
         {
@@ -167,15 +158,21 @@ export default function Search() {
             console.log(err)
         }).then(resultsList => {
             console.log(resultsList);
-            console.log("Reached here!!!")
 
             const resultsRows = resultsList.map((output, i) => {
                 return (
-                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} specialSearch={specialSearch} compatibilitySearch={compatibilitySearch} output={output} setShowDetails={setShowDetails} setZip={setZip} />
                 )
             })
-            
-            setSearchResults(resultsRows);
+            const searchResultsTemp = () => {
+                return (
+                    <>
+                        <SearchResultsHeader zipOrBusiness={zipOrBusiness} specialSearch={specialSearch} compatibilitySearch={compatibilitySearch} />
+                        {resultsRows}
+                    </>
+                )
+            }
+            setSearchResults(searchResultsTemp);
             
             console.log("Search page");
             console.log(resultsRows);
@@ -184,6 +181,18 @@ export default function Search() {
     }
 
     const foodQuery = () => {
+        
+        if (zipOrBusiness === "business") {
+            setErrorMessageFoodieFilters('Please set "Search Type" to "Zip Code"!');
+            return;
+        }
+
+        setErrorMessageLocalBusinesses("");
+        setErrorMessageFoodieFilters("");
+        setErrorMessageCompatibility("");
+
+        console.log({zipOrBusiness, specialSearch, compatibilitySearch});
+        
         fetch(`http://localhost:4000/restaurants/${latitude}/${longitude}/${radius}/${minBudget}/${maxBudget}/${zipOrBusiness}/${dealBreaker}/${orderKey}/${orderDirection}/${restaurantStars}/${restaurantPrice}/${restaurantMin}`,
         {
             method: 'GET',
@@ -195,14 +204,34 @@ export default function Search() {
             console.log(resultsList);
             const resultsRows = resultsList.map((output, i) => {
                 return (
-                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} specialSearch={specialSearch} compatibilitySearch={compatibilitySearch} output={output} setShowDetails={setShowDetails} setZip={setZip} />
                 )
             })
-            setSearchResults(resultsRows);
+            const searchResultsTemp = () => {
+                return (
+                    <>
+                        <SearchResultsHeader zipOrBusiness={zipOrBusiness} specialSearch={specialSearch} compatibilitySearch={compatibilitySearch} />
+                        {resultsRows}
+                    </>
+                )
+            }
+            setSearchResults(searchResultsTemp);
         });
     };
 
     const findLocalBusinesses = () => {
+        
+        if (zipOrBusiness === "zip") {
+            setErrorMessageLocalBusinesses('Please set "Search Type" to "Business"!');
+            return;
+        }
+
+        setErrorMessageLocalBusinesses("");
+        setErrorMessageFoodieFilters("");
+        setErrorMessageCompatibility("");
+
+        console.log({zipOrBusiness, specialSearch, compatibilitySearch});
+        
         fetch(`http://localhost:4000/locals/${latitude}/${longitude}/${radius}`,
         {
             method: 'GET',
@@ -214,11 +243,18 @@ export default function Search() {
             console.log(resultsList);
             const resultsRows = resultsList.map((output, i) => {
                 return (
-                    <SearchResultsRow zipOrBusiness={zipOrBusiness} output={output} setShowDetails={setShowDetails} setZip={setZip} />
+                    <SearchResultsRow zipOrBusiness={zipOrBusiness} specialSearch={specialSearch} compatibilitySearch={compatibilitySearch} output={output} setShowDetails={setShowDetails} setZip={setZip} />
                 )
             })
-            
-            setSearchResults(resultsRows);
+            const searchResultsTemp = () => {
+                return (
+                    <>
+                        <SearchResultsHeader zipOrBusiness={zipOrBusiness} specialsSearch={specialSearch} compatibilitySearch={compatibilitySearch} />
+                        {resultsRows}
+                    </>
+                )
+            }
+            setSearchResults(searchResultsTemp);
         });
     };
 
@@ -253,6 +289,11 @@ export default function Search() {
             setRestaurantMinError("");
         }
     };
+
+    const specialSearchActivation = () => {
+        setSpecialSearch(!specialSearch);
+        
+    }
 
     // Styling for grid layout on Search page
     const useStyles = makeStyles((theme) => ({
@@ -353,7 +394,7 @@ export default function Search() {
                                     <TextField
                                     id="radius"
                                     required
-                                    label="Radius"
+                                    label="Radius (miles)"
                                     value={radius}
                                     onChange={e => setRadius(e.target.value)}
                                     margin="dense"
@@ -364,15 +405,19 @@ export default function Search() {
                             </Grid>
                             <Grid item >
                             <Paper className={classes.paper}>
-                                    <div><h3>Preferences</h3></div>
-                                    <div><p>Please assign relative priority numbers to each/any of the following preferences</p></div>
+                                    <div><h3>Preferences (Optional)</h3></div>
+                                    <div><p>For zip searches only. Please assign relative priority numbers (non-negative integers) any of the following preferences. Your results will be sorted by compatibility score!</p></div>
 
 
                                     <TextField
                                     id="good-for-kids"
                                     label="Good For Kids"
                                     value={attributes.GoodForKids}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, GoodForKids: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForDancing) === 0 && parseInt(attributes.DogsAllowed) === 0 && parseInt(attributes.WheelchairAccessible) === 0 && parseInt(attributes.GoodForBikers) === 0 && parseInt(attributes.RestaurantDelivery) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, GoodForKids: e.target.value}})}
+                                    }
                                     margin="dense"
                                     />
 
@@ -380,7 +425,11 @@ export default function Search() {
                                     id="good-for-dancing"
                                     label="Good For Dancing"
                                     value={attributes.GoodForDancing}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, GoodForDancing: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForKids) === 0 && parseInt(attributes.DogsAllowed) === 0 && parseInt(attributes.WheelchairAccessible) === 0 && parseInt(attributes.GoodForBikers) === 0 && parseInt(attributes.RestaurantDelivery) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, GoodForDancing: e.target.value}})}
+                                    }
                                     margin="dense"
                                     />
                                     
@@ -388,7 +437,11 @@ export default function Search() {
                                     id="dogs-allowed"
                                     label="Dogs Allowed"
                                     value={attributes.DogsAllowed}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, DogsAllowed: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForKids) === 0 && parseInt(attributes.GoodForDancing) === 0 && parseInt(attributes.WheelchairAccessible) === 0 && parseInt(attributes.GoodForBikers) === 0 && parseInt(attributes.RestaurantDelivery) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, DogsAllowed: e.target.value}})}
+                                    }
                                     margin="dense"
                                     />
 
@@ -396,7 +449,11 @@ export default function Search() {
                                     id="wheelchair-accessible"
                                     label="Wheelchair Accessible"
                                     value={attributes.WheelchairAccessible}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, WheelchairAccessible: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForKids) === 0 && parseInt(attributes.GoodForDancing) === 0 && parseInt(attributes.DogsAllowed) === 0 && parseInt(attributes.GoodForBikers) === 0 && parseInt(attributes.RestaurantDelivery) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, WheelchairAccessible: e.target.value}})}
+                                    }
                                     margin="dense"
                                     /> 
 
@@ -404,7 +461,11 @@ export default function Search() {
                                     id="good-for-bikers"
                                     label="Good For Bikers"
                                     value={attributes.GoodForBikers}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, GoodForBikers: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForKids) === 0 && parseInt(attributes.GoodForDancing) === 0 && parseInt(attributes.DogsAllowed) === 0 && parseInt(attributes.WheelchairAccessible) === 0 && parseInt(attributes.RestaurantDelivery) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, GoodForBikers: e.target.value}})}
+                                    }
                                     margin="dense"
                                     />
 
@@ -412,18 +473,26 @@ export default function Search() {
                                     id="restaurant-delivery"
                                     label="Restaurant Delivery"
                                     value={attributes.RestaurantDelivery}
-                                    onChange={e => setAttributes(prevState => {return {...prevState, RestaurantDelivery: e.target.value}})}
+                                    onChange={e => {
+                                        if (parseInt(e.target.value) !== 0) setCompatibilitySearch(true);
+                                        if (parseInt(e.target.value) === 0 && parseInt(attributes.GoodForKids) === 0 && parseInt(attributes.GoodForDancing) === 0 && parseInt(attributes.DogsAllowed) === 0 && parseInt(attributes.WheelchairAccessible) === 0 && parseInt(attributes.GoodForBikers) === 0) setCompatibilitySearch(false);
+                                        setAttributes(prevState => {return {...prevState, RestaurantDelivery: e.target.value}})}
+                                    }
                                     margin="dense"
-                                    />   
+                                    />
+
+                                    <div><strong><p style={{color: "red", fontSize: "14px"}}>{errorMessageCompatibility}</p></strong></div>   
 
                                 </Paper>
                                 &nbsp;
                                 <Grid>
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="contained" color='secondary' onClick={generalSearchQuery}>
-                                            SEARCH!
-                                        </Button>
-                                    </div>
+                                    {!specialSearch && 
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <Button variant="contained" color='primary' onClick={generalSearchQuery}>
+                                                SEARCH!
+                                            </Button>
+                                        </div>
+                                    }
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -528,7 +597,9 @@ export default function Search() {
                             </Grid>
                             <Grid item>
                                 <Paper className={classes.paper} >
-                                    <div><h3>Tags</h3></div>
+                                    <div><h3>Business Tags (Optional)</h3></div>
+
+                                    <div><p>Filters for business searches only. If none are selected, all business types will be included.</p></div>
 
                                     <div>
                                     <label>
@@ -646,49 +717,60 @@ export default function Search() {
                                 </Box> 
                             </Grid>
                             <Grid item xs>
-                                <Paper className={classes.paper}>
-                                    <div><h2>SmartMove's Signature Searches</h2></div>
-                                    <div><h3>Filters for Foodies (Find Regions Based on Their Food)</h3></div>
+                                {specialSearch ? 
+                                    <Paper className={classes.paper}>
+                                        
+                                            <div><h2>SmartMove's Signature Searches</h2></div>
+                                            <div><h3>Filters for Foodies (Find Regions Based on Their Food)</h3></div>
 
-                                    <TextField
-                                    id="restaurant-price"
-                                    label="Maximum Avg Restaurant Price (1-4: $-$$$$)"
-                                    value={restaurantPrice}
-                                    onChange={e => restaurantPriceErrorHandler(e)}
-                                    margin="dense"
-                                    error = {restaurantPrice < 1 || restaurantPrice > 4}
-                                    helperText = {restaurantPriceError}
-                                    />
+                                            <TextField
+                                            id="restaurant-price"
+                                            label="Maximum Avg Restaurant Price (1-4: $-$$$$)"
+                                            value={restaurantPrice}
+                                            onChange={e => restaurantPriceErrorHandler(e)}
+                                            margin="dense"
+                                            error = {restaurantPrice < 1 || restaurantPrice > 4}
+                                            helperText = {restaurantPriceError}
+                                            />
 
-                                    <TextField
-                                    id="restaurant-stars"
-                                    label="Minimum Avg Restaurant Quality (1-5 Stars)"
-                                    value={restaurantStars}
-                                    onChange={e => restaurantStarsErrorHandler(e)}
-                                    margin="dense"
-                                    error = {restaurantStars < 1 || restaurantStars > 5}
-                                    helperText = {restaurantStarsError}
-                                    />
+                                            <TextField
+                                            id="restaurant-stars"
+                                            label="Minimum Avg Restaurant Quality (1-5 Stars)"
+                                            value={restaurantStars}
+                                            onChange={e => restaurantStarsErrorHandler(e)}
+                                            margin="dense"
+                                            error = {restaurantStars < 1 || restaurantStars > 5}
+                                            helperText = {restaurantStarsError}
+                                            />
 
-                                    <TextField
-                                    id="restaurant-min"
-                                    label="Minimum Number of Restaurants in Area"
-                                    value={restaurantMin}
-                                    onChange={e => restaurantMinErrorHandler(e)}
-                                    margin="dense"
-                                    error = {restaurantMin < 0}
-                                    helperText = {restaurantMinError}
-                                    />
-                                    <div></div>
-                                    <Button variant="contained" color='secondary' onClick={foodQuery}>Find Some Food!</Button>
+                                            <TextField
+                                            id="restaurant-min"
+                                            label="Minimum Number of Restaurants in Area"
+                                            value={restaurantMin}
+                                            onChange={e => restaurantMinErrorHandler(e)}
+                                            margin="dense"
+                                            error = {restaurantMin < 0}
+                                            helperText = {restaurantMinError}
+                                            />
+                                            <div></div>
+                                            <Button variant="contained" color='secondary' onClick={foodQuery}>Find Some Food!</Button>
 
-                                    <div><h3>Find One-of-a-Kind Businesses (requires search-type Business)</h3></div>
+                                            <div><strong><p style={{color: "red", fontSize: "14px"}}>{errorMessageFoodieFilters}</p></strong></div>
 
+                                            <div><h3>Find One-of-a-Kind Businesses in the Selected Region</h3></div>
+
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                <Button variant="contained" color='secondary' onClick={findLocalBusinesses}>Let's Go!</Button>
+                                            </div>
+
+                                            <div><strong><p style={{color: "red", fontSize: "14px"}}>{errorMessageLocalBusinesses}</p></strong></div>
+                                            <Button variant="contained" color='primary' onClick={specialSearchActivation}>Return to General Searches!</Button>
+                                    </Paper>
+                                    :
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="contained" color='secondary' onClick={findLocalBusinesses}>Let's Go!</Button>
+                                        <Button variant="contained" color='secondary' onClick={specialSearchActivation}>Try Out SmartMove's Signature Searches!</Button>
                                     </div>
-
-                                </Paper>
+                                }
                             </Grid>
                         </Grid>
                     </Grid>
@@ -697,8 +779,7 @@ export default function Search() {
                 <Grid container spacing={4}>
                     <Grid item xs>
                         <Paper className={classes.paper}>
-                            <div><h2>Results</h2></div>
-                            <SearchResultsHeader zipOrBusiness={zipOrBusiness} resultFieldsZip={resultFieldsZip} />
+                            <div><h2>Your Recommendations</h2></div>
                             <div>
                                 {searchResults}
                             </div>
